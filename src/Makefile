@@ -15,8 +15,6 @@ all: _everything
 
 include $(SCRIPTDIR)/makelib
 
-export LFLAGS       +=  $(MY_PROJECT_LIBS)
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 .PHONY: clean
