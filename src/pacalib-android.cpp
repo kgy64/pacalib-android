@@ -18,28 +18,28 @@ using namespace PaCaAndroid;
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-SurfacePtr PaCaLib::Surface::Get(int width, int height)
+PaCaLib::SurfacePtr PaCaLib::Surface::Create(int width, int height)
 {
- return SurfacePtr(new Surface(width, height));
+ return PaCaLib::SurfacePtr(new PaCaAndroid::Surface(width, height));
 }
 
-void Surface::* getData(void) override
-{
-}
-
-const Surface::void * getData(void) const override
+void * Surface::getData(void)
 {
 }
 
-int Surface::getWidth(void) const override
+const void * Surface::getData(void) const
 {
 }
 
-int Surface::getPhysicalWidth(void) const override
+int Surface::getWidth(void) const
 {
 }
 
-int Surface::getHeight(void) const override
+int Surface::getPhysicalWidth(void) const
+{
+}
+
+int Surface::getHeight(void) const
 {
 }
 
@@ -49,108 +49,108 @@ int Surface::getHeight(void) const override
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-TargetPtr PaCaLib::Target::Get(int width, int height)
+PaCaLib::TargetPtr PaCaLib::Target::Create(int width, int height)
 {
- return TargetPtr(new Target(width, height));
+ return PaCaLib::TargetPtr(new PaCaAndroid::Target(width, height));
 }
 
-int Target::GetWidth(void) const override
-{
-}
-
-int Target::GetHeight(void) const override
+int Target::GetWidth(void) const
 {
 }
 
-const Target::void * GetPixelData(void) const override
+int Target::GetHeight(void) const
 {
 }
 
-int Target::GetLogicalWidth(void) const override
+const void * Target::GetPixelData(void) const
 {
 }
 
-void Target::Scale(double w, double h) override
+int Target::GetLogicalWidth(void) const
 {
 }
 
-void Target::Stroke(void) override
+void Target::Scale(double w, double h)
 {
 }
 
-void Target::Fill(void) override
+void Target::Stroke(void)
 {
 }
 
-void Target::FillPreserve(void) override
+void Target::Fill(void)
 {
 }
 
-void Target::SetLineWidth(double width) override
+void Target::FillPreserve(void)
 {
 }
 
-void Target::Move(double x, double y) override
+void Target::SetLineWidth(double width)
 {
 }
 
-void Target::Line(double x, double y) override
+void Target::Move(double x, double y)
 {
 }
 
-void Target::SetLineCap(cairo_line_cap_t mode) override
+void Target::Line(double x, double y)
 {
 }
 
-void Target::SetColour(double r, double g, double b) override
+void Target::SetLineCap(PaCaLib::LineCap mode)
 {
 }
 
-void Target::SetColour(double r, double g, double b, double a) override
+void Target::SetColour(double r, double g, double b)
 {
 }
 
-void Target::SetColour(const Colour & col) override
+void Target::SetColour(double r, double g, double b, double a)
 {
 }
 
-void Target::Rectangle(double x, double y, double w, double h) override
+void Target::SetColour(const PaCaLib::Colour & col)
 {
 }
 
-void Target::Arc(double xc, double yc, double r, double a1, double a2) override
+void Target::Rectangle(double x, double y, double w, double h)
 {
 }
 
-void Target::NewPath(void) override
+void Target::Arc(double xc, double yc, double r, double a1, double a2)
 {
 }
 
-void Target::NewSubPath(void) override
+void Target::NewPath(void)
 {
 }
 
-void Target::ClosePath(void) override
+void Target::NewSubPath(void)
 {
 }
 
-double Target::DrawText(double x, double y, TextMode mode, const char * text, double size, double aspect = 1.0) override
+void Target::ClosePath(void)
 {
 }
 
-void Target::SetTextOutlineColour(double r, double g, double b, double a = 1.0) override
+double Target::DrawText(double x, double y, PaCaLib::TextMode mode, const char * text, double size, double aspect)
 {
 }
 
-void Target::SetTextOutline(double outline) override
+void Target::SetTextOutlineColour(double r, double g, double b, double a)
 {
 }
 
-void Target::Paint(void) override
+void Target::SetTextOutline(double outline)
 {
 }
 
-void Target::Paint(double alpha) override
+void Target::Paint(void)
+{
+}
+
+void Target::Paint(double alpha)
 {
 }
 
