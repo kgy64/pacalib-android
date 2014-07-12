@@ -61,6 +61,7 @@ namespace PaCaAndroid
         virtual void SetTextOutline(double outline) override;
         virtual void Paint(void) override;
         virtual void Paint(double alpha) override;
+        virtual void Operator(PaCaLib::Oper op) override;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Target");

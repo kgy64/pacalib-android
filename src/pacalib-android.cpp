@@ -18,6 +18,11 @@ using namespace PaCaAndroid;
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+PaCaAndroid::Surface::Surface(int width, int height)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+}
+
 PaCaLib::SurfacePtr PaCaLib::Surface::Create(int width, int height)
 {
  return PaCaLib::SurfacePtr(new PaCaAndroid::Surface(width, height));
@@ -48,6 +53,11 @@ int Surface::getHeight(void) const
  *         class Target:                                                                 *
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+PaCaAndroid::Target::Target(int width, int height)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+}
 
 PaCaLib::TargetPtr PaCaLib::Target::Create(int width, int height)
 {
@@ -151,6 +161,10 @@ void Target::Paint(void)
 }
 
 void Target::Paint(double alpha)
+{
+}
+
+void Target::Operator(PaCaLib::Oper op)
 {
 }
 
