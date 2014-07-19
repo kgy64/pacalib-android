@@ -16,6 +16,14 @@ using namespace PaCaAndroid;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  *                                                                                       *
+ *         class JavaIface:                                                              *
+ *                                                                                       *
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+PaCaAndroid::JavaIface * PaCaAndroid::JavaIface::myself;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ *                                                                                       *
  *         class Surface:                                                                *
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -27,15 +35,20 @@ PaCaLib::SurfacePtr PaCaLib::Surface::Create(int width, int height)
 
 PaCaAndroid::Surface::Surface(int width, int height):
     myWidth(width),
-    myHeight(height)
+    myHeight(height),
+    bitmap(CreateBitmap(width, height))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- myData = new rgba[myWidth*myHeight];
+ argb * pix = (argb*)getData();
+
+ SYS_DEBUG(DL_INFO1, "pix data at " << pix);
+
+ return;
 
  for (int i = 0; i < myHeight; ++i) {
     float y = 255.0 * (float)i / (float)myHeight;
-    rgba * pixel = &myData[i * myWidth];
+    argb * pixel = &pix[i * myWidth];
     for (int j = 0; j < myWidth; ++j, ++pixel) {
         float x = 255.0 * (float)j / (float)myWidth;
         pixel->r = (int)(x*y);
@@ -49,18 +62,16 @@ PaCaAndroid::Surface::Surface(int width, int height):
 PaCaAndroid::Surface::~Surface()
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
-
- delete myData;
 }
 
 void * Surface::getData(void)
 {
- return myData;
+ return bitmap->getPixelData();
 }
 
 const void * Surface::getData(void) const
 {
- return myData;
+ return bitmap->getPixelData();
 }
 
 int Surface::getWidth(void) const

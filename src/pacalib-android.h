@@ -14,9 +14,103 @@
 #include <pacalib/pacalib.h>
 #include <android-access/access-base.h>
 #include <android/native_window_jni.h>
+#include <android-main.h>
+#include <Debug/Debug.h>
+
+#include <android/bitmap.h>
 
 namespace PaCaAndroid
 {
+    class JavaBitmap;
+
+    typedef boost::shared_ptr<JavaBitmap> JavaBitmapPtr;
+
+    class JavaBitmap
+    {
+        inline JavaBitmap(JNIEnv * env, AndroidAccess::JGlobalRefPtr obj):
+            env(env),
+            obj(obj),
+            pixel_data(nullptr)
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+            AndroidBitmap_lockPixels(env, obj->get(), &pixel_data);
+            ASSERT(pixel_data, "lockPixels() failed");
+        }
+
+     public:
+        VIRTUAL_IF_DEBUG inline ~JavaBitmap()
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+            if (pixel_data) {
+                AndroidBitmap_unlockPixels(env, obj->get());
+            }
+        }
+
+        static inline JavaBitmapPtr Create(JNIEnv * env, AndroidAccess::JGlobalRefPtr obj)
+        {
+            return JavaBitmapPtr(new JavaBitmap(env, obj));
+        }
+
+        inline void * getPixelData(void)
+        {
+            return pixel_data;
+        }
+
+     protected:
+        JNIEnv * env;
+
+        AndroidAccess::JGlobalRefPtr obj;
+
+        void * pixel_data;
+
+     private:
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaBitmap");
+
+    }; // class PaCaAndroid::JavaBitmap
+
+    class JavaIface
+    {
+        inline JavaIface(void):
+            classes(AndroidBaseService::Get().Classes()),
+            env(AndroidAccess::getJNIEnv())
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+        }
+
+        VIRTUAL_IF_DEBUG inline ~JavaIface()
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+        }
+
+     public:
+        static inline JavaIface & Get()
+        {
+            // Note: this class must be used only in one thread, that's why no guard is necessary here.
+            //       System calls will not work if it is used from more threads.
+            if (!myself) {
+                myself = new JavaIface();
+            }
+            return *myself;
+        }
+
+        inline JavaBitmapPtr CreateBitmap(int32_t width, int32_t height)
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+            return JavaBitmap::Create(env, AndroidAccess::JGlobalRef::Create(env, (*classes.create_bitmap)(env, width, height)));
+        }
+
+     protected:
+        MyJavaClasses & classes;
+
+        JNIEnv * env;
+
+     private:
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaIface");
+
+        static JavaIface * myself;
+
+    }; // class JavaIface
+
     class Surface: public PaCaLib::Surface
     {
      public:
@@ -30,7 +124,19 @@ namespace PaCaAndroid
         virtual int getHeight(void) const override;
 
      protected:
-        struct rgba {
+        inline static JavaIface & GetJavaIface(void)
+        {
+            return PaCaAndroid::JavaIface::Get();
+        }
+
+        inline JavaBitmapPtr CreateBitmap(int width, int height)
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+            SYS_DEBUG(DL_INFO2, "Creating bitmap " << width << "x" << height);
+            return GetJavaIface().CreateBitmap(width, height);
+        }
+
+        struct argb {
             uint8_t b, g, r, a;
         };
 
@@ -38,7 +144,7 @@ namespace PaCaAndroid
 
         int myHeight;
 
-        rgba * myData;
+        JavaBitmapPtr bitmap;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Surface");
