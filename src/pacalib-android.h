@@ -12,6 +12,8 @@
 #define __SRC_PACALIB_ANDROID_H_INCLUDED__
 
 #include <pacalib/pacalib.h>
+#include <android-access/access-base.h>
+#include <android/native_window_jni.h>
 
 namespace PaCaAndroid
 {
@@ -19,12 +21,24 @@ namespace PaCaAndroid
     {
      public:
         Surface(int width, int height);
+        virtual ~Surface();
 
         virtual void * getData(void) override;
         virtual const void * getData(void) const override;
         virtual int getWidth(void) const override;
         virtual int getPhysicalWidth(void) const override;
         virtual int getHeight(void) const override;
+
+     protected:
+        struct rgba {
+            uint8_t b, g, r, a;
+        };
+
+        int myWidth;
+
+        int myHeight;
+
+        rgba * myData;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Surface");
@@ -33,8 +47,11 @@ namespace PaCaAndroid
 
     class Target: public PaCaLib::Target
     {
+        PaCaLib::SurfacePtr mySurface;
+
      public:
         Target(int width, int height);
+        virtual ~Target();
 
         virtual int GetWidth(void) const override;
         virtual int GetHeight(void) const override;

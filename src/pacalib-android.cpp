@@ -10,6 +10,8 @@
 
 #include "pacalib-android.h"
 
+#include <android-render.h>
+
 using namespace PaCaAndroid;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -18,34 +20,62 @@ using namespace PaCaAndroid;
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-PaCaAndroid::Surface::Surface(int width, int height)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-}
-
 PaCaLib::SurfacePtr PaCaLib::Surface::Create(int width, int height)
 {
  return PaCaLib::SurfacePtr(new PaCaAndroid::Surface(width, height));
 }
 
+PaCaAndroid::Surface::Surface(int width, int height):
+    myWidth(width),
+    myHeight(height)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ myData = new rgba[myWidth*myHeight];
+
+ for (int i = 0; i < myHeight; ++i) {
+    float y = 255.0 * (float)i / (float)myHeight;
+    rgba * pixel = &myData[i * myWidth];
+    for (int j = 0; j < myWidth; ++j, ++pixel) {
+        float x = 255.0 * (float)j / (float)myWidth;
+        pixel->r = (int)(x*y);
+        pixel->g = (int)x;
+        pixel->b = (int)y;
+        pixel->a = 180;
+    }
+ }
+}
+
+PaCaAndroid::Surface::~Surface()
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ delete myData;
+}
+
 void * Surface::getData(void)
 {
+ return myData;
 }
 
 const void * Surface::getData(void) const
 {
+ return myData;
 }
 
 int Surface::getWidth(void) const
 {
+ return myWidth;
 }
 
 int Surface::getPhysicalWidth(void) const
 {
+ return myWidth;
 }
 
 int Surface::getHeight(void) const
 {
+ return myHeight;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -54,118 +84,154 @@ int Surface::getHeight(void) const
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-PaCaAndroid::Target::Target(int width, int height)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-}
-
 PaCaLib::TargetPtr PaCaLib::Target::Create(int width, int height)
 {
  return PaCaLib::TargetPtr(new PaCaAndroid::Target(width, height));
 }
 
-int Target::GetWidth(void) const
+PaCaAndroid::Target::Target(int width, int height):
+    mySurface(PaCaLib::Surface::Create(width, height))
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+}
+
+PaCaAndroid::Target::~Target()
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 int Target::GetHeight(void) const
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+ return mySurface->getHeight();
 }
 
-const void * Target::GetPixelData(void) const
+int Target::GetWidth(void) const
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+ return mySurface->getWidth();
 }
 
 int Target::GetLogicalWidth(void) const
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+ return mySurface->getWidth();
+}
+
+const void * Target::GetPixelData(void) const
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+ return mySurface->getData();
 }
 
 void Target::Scale(double w, double h)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Stroke(void)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Fill(void)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::FillPreserve(void)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::SetLineWidth(double width)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Move(double x, double y)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Line(double x, double y)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::SetLineCap(PaCaLib::LineCap mode)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::SetColour(double r, double g, double b)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::SetColour(double r, double g, double b, double a)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::SetColour(const PaCaLib::Colour & col)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Rectangle(double x, double y, double w, double h)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Arc(double xc, double yc, double r, double a1, double a2)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::NewPath(void)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::NewSubPath(void)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::ClosePath(void)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 double Target::DrawText(double x, double y, PaCaLib::TextMode mode, const char * text, double size, double aspect)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::SetTextOutlineColour(double r, double g, double b, double a)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::SetTextOutline(double outline)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Paint(void)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Paint(double alpha)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 void Target::Operator(PaCaLib::Oper op)
 {
+ SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
 /* * * * * * * * * * * * * End - of - File * * * * * * * * * * * * * * */
