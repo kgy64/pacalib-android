@@ -17,12 +17,12 @@
 #include <android-main.h>
 #include <Debug/Debug.h>
 
+#include <boost/shared_ptr.hpp>
 #include <android/bitmap.h>
 
 namespace PaCaAndroid
 {
     class JavaBitmap;
-
     typedef boost::shared_ptr<JavaBitmap> JavaBitmapPtr;
 
     class JavaBitmap
@@ -49,6 +49,11 @@ namespace PaCaAndroid
         static inline JavaBitmapPtr Create(JNIEnv * env, AndroidAccess::JGlobalRefPtr obj)
         {
             return JavaBitmapPtr(new JavaBitmap(env, obj));
+        }
+
+        inline jobject get(void) const
+        {
+            return obj->get();
         }
 
         inline void * getPixelData(void)
@@ -99,6 +104,12 @@ namespace PaCaAndroid
             return JavaBitmap::Create(env, AndroidAccess::JGlobalRef::Create(env, (*classes.create_bitmap)(env, width, height)));
         }
 
+        inline void DrawText(const JavaBitmapPtr & bitmap, const char * text, float size)
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+            (*classes.draw_text)(env, bitmap->get(), env->NewStringUTF(text), size);
+        }
+
      protected:
         MyJavaClasses & classes;
 
@@ -111,17 +122,43 @@ namespace PaCaAndroid
 
     }; // class JavaIface
 
-    class Surface: public PaCaLib::Surface
+    class Surface
     {
      public:
         Surface(int width, int height);
-        virtual ~Surface();
+        VIRTUAL_IF_DEBUG ~Surface();
 
-        virtual void * getData(void) override;
-        virtual const void * getData(void) const override;
-        virtual int getWidth(void) const override;
-        virtual int getPhysicalWidth(void) const override;
-        virtual int getHeight(void) const override;
+        inline void * getData(void)
+        {
+            return bitmap->getPixelData();
+        }
+
+        inline const void * getData(void) const
+        {
+            return bitmap->getPixelData();
+        }
+
+        inline int getWidth(void) const
+        {
+            return myWidth;
+        }
+
+        inline int getPhysicalWidth(void) const
+        {
+            return myWidth;
+        }
+
+        inline int getHeight(void) const
+        {
+            return myHeight;
+        }
+
+        inline void DrawText(const char * text, float size)
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+            SYS_DEBUG(DL_INFO2, "Drawing text '" << text << "', size=" << size);
+            GetJavaIface().DrawText(bitmap, text, size);
+        }
 
      protected:
         inline static JavaIface & GetJavaIface(void)
@@ -153,7 +190,7 @@ namespace PaCaAndroid
 
     class Target: public PaCaLib::Target
     {
-        PaCaLib::SurfacePtr mySurface;
+        Surface mySurface;
 
      public:
         Target(int width, int height);
