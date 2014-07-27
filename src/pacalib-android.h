@@ -76,8 +76,7 @@ namespace PaCaAndroid
     class JavaIface
     {
         inline JavaIface(void):
-            classes(AndroidBaseService::Get().Classes()),
-            env(AndroidAccess::getJNIEnv())
+            classes(AndroidBaseService::Get().Classes())
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
         }
@@ -101,19 +100,21 @@ namespace PaCaAndroid
         inline JavaBitmapPtr CreateBitmap(int32_t width, int32_t height)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
+            JNIEnv * env = AndroidAccess::getJNIEnv();
             return JavaBitmap::Create(env, AndroidAccess::JGlobalRef::Create(env, (*classes.create_bitmap)(env, width, height)));
         }
 
         inline void DrawText(const JavaBitmapPtr & bitmap, const char * text, float size)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
-            (*classes.draw_text)(env, bitmap->get(), env->NewStringUTF(text), size);
+            JNIEnv * env = AndroidAccess::getJNIEnv();
+            jstring string = env->NewStringUTF(text);
+            (*classes.draw_text)(env, bitmap->get(), string, size);
+            env->DeleteLocalRef(string);
         }
 
      protected:
         MyJavaClasses & classes;
-
-        JNIEnv * env;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaIface");
