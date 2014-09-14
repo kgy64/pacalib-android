@@ -12,7 +12,7 @@
 #define __SRC_PACALIB_ANDROID_H_INCLUDED__
 
 #include <pacalib/pacalib.h>
-#include <android-access/access-base.h>
+#include <my-android/access/access-base.h>
 #include <android/native_window_jni.h>
 #include <android-main.h>
 #include <Debug/Debug.h>
