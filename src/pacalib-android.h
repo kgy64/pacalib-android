@@ -17,13 +17,13 @@
 #include <android-main.h>
 #include <Debug/Debug.h>
 
-#include <boost/shared_ptr.hpp>
+#include <Memory/Memory.h>
 #include <android/bitmap.h>
 
 namespace PaCaAndroid
 {
     class JavaBitmap;
-    typedef boost::shared_ptr<JavaBitmap> JavaBitmapPtr;
+    typedef MEM::shared_ptr<JavaBitmap> JavaBitmapPtr;
 
     class JavaBitmap
     {
