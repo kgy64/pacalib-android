@@ -27,7 +27,7 @@ namespace PaCaAndroid
 
     class JavaBitmap
     {
-        inline JavaBitmap(JNIEnv * env, AndroidAccess::JGlobalRefPtr obj):
+        inline JavaBitmap(AndroidAccess::JGlobalRefPtr obj, JNIEnv * env = AndroidAccess::getJNIEnv()):
             env(env),
             obj(obj),
             pixel_data(nullptr)
@@ -46,9 +46,9 @@ namespace PaCaAndroid
             }
         }
 
-        static inline JavaBitmapPtr Create(JNIEnv * env, AndroidAccess::JGlobalRefPtr obj)
+        static inline JavaBitmapPtr Create(AndroidAccess::JGlobalRefPtr obj, JNIEnv * env = AndroidAccess::getJNIEnv())
         {
-            return JavaBitmapPtr(new JavaBitmap(env, obj));
+            return JavaBitmapPtr(new JavaBitmap(obj, env));
         }
 
         inline jobject get(void) const
@@ -72,6 +72,37 @@ namespace PaCaAndroid
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaBitmap");
 
     }; // class PaCaAndroid::JavaBitmap
+
+    class JavaString
+    {
+     public:
+        inline JavaString(const char * text, JNIEnv * env = AndroidAccess::getJNIEnv()):
+            myJNIenv(env),
+            myString(myJNIenv->NewStringUTF(text))
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+        }
+
+        inline ~JavaString()
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+
+            myJNIenv->DeleteLocalRef(myString);
+        }
+
+        inline const jstring & get(void) const
+        {
+            return myString;
+        }
+
+     private:
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaString");
+
+        JNIEnv * myJNIenv;
+
+        jstring myString;
+
+    }; // class PaCaAndroid::JavaString
 
     class JavaIface
     {
@@ -101,16 +132,15 @@ namespace PaCaAndroid
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             JNIEnv * env = AndroidAccess::getJNIEnv();
-            return JavaBitmap::Create(env, AndroidAccess::JGlobalRef::Create(env, (*classes.create_bitmap)(env, width, height)));
+            return JavaBitmap::Create(AndroidAccess::JGlobalRef::Create((*classes.create_bitmap)(env, width, height), env), env);
         }
 
         inline void DrawText(const JavaBitmapPtr & bitmap, const char * text, float size)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             JNIEnv * env = AndroidAccess::getJNIEnv();
-            jstring string = env->NewStringUTF(text);
-            (*classes.draw_text)(env, bitmap->get(), string, size);
-            env->DeleteLocalRef(string);
+            JavaString js(text, env);
+            (*classes.draw_text)(env, bitmap->get(), js.get(), size);
         }
 
      protected:
