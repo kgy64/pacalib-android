@@ -22,6 +22,29 @@ using namespace PaCaAndroid;
 
 PaCaAndroid::JavaIface * PaCaAndroid::JavaIface::myself;
 
+void JavaIface::SetColour(float r, float g, float b, float a)
+{
+ JNIEnv * env = AndroidAccess::getJNIEnv();
+ (*classes.set_colour)(env, r, g, b, a);
+}
+
+JavaBitmapPtr JavaIface::CreateBitmap(int32_t width, int32_t height)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ JNIEnv * env = AndroidAccess::getJNIEnv();
+ return JavaBitmap::Create(AndroidAccess::JGlobalRef::Create((*classes.create_bitmap)(env, width, height), env), env);
+}
+
+void JavaIface::DrawText(const JavaBitmapPtr & bitmap, const char * text, float size)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ JNIEnv * env = AndroidAccess::getJNIEnv();
+ JavaString js(text, env);
+ (*classes.draw_text)(env, bitmap->get(), js.get(), size);
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  *                                                                                       *
  *         class Surface:                                                                *
@@ -143,18 +166,24 @@ void Target::SetColour(double r, double g, double b)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ")");
+
+ mySurface.SetColour(r, g, b, 1.0f);
 }
 
 void Target::SetColour(double r, double g, double b, double a)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ", " << a << ")");
+
+ mySurface.SetColour(r, g, b, a);
 }
 
 void Target::SetColour(const PaCaLib::Colour & col)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << col << ")");
+
+ mySurface.SetColour(col.r, col.g, col.b, col.a);
 }
 
 void Target::Rectangle(double x, double y, double w, double h)
@@ -222,6 +251,25 @@ void Target::Operator(PaCaLib::Oper op)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Operator(" << (int)op << ")");
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ *                                                                                       *
+ *         class JavaIface::MyJavaClasses:                                               *
+ *                                                                                       *
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+JavaIface::MyJavaClasses::MyJavaClasses(void):
+    MyJavaClasses(AndroidAccess::getJNIEnv())
+{
+}
+
+JavaIface::MyJavaClasses::MyJavaClasses(JNIEnv * env):
+    graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics", true, env)),
+    create_bitmap(AndroidAccess::JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
+    set_colour(AndroidAccess::JFuncVoid::Create(*graphics, "SetColor", "(FFFF)V")),
+    draw_text(AndroidAccess::JFuncVoid::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;F)V"))
+{
 }
 
 /* * * * * * * * * * * * * End - of - File * * * * * * * * * * * * * * */

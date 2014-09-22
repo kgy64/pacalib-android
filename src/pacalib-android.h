@@ -106,8 +106,7 @@ namespace PaCaAndroid
 
     class JavaIface
     {
-        inline JavaIface(void):
-            classes(AndroidBaseService::Get().Classes())
+        inline JavaIface(void)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
         }
@@ -128,23 +127,24 @@ namespace PaCaAndroid
             return *myself;
         }
 
-        inline JavaBitmapPtr CreateBitmap(int32_t width, int32_t height)
-        {
-            SYS_DEBUG_MEMBER(DM_PACALIB);
-            JNIEnv * env = AndroidAccess::getJNIEnv();
-            return JavaBitmap::Create(AndroidAccess::JGlobalRef::Create((*classes.create_bitmap)(env, width, height), env), env);
-        }
-
-        inline void DrawText(const JavaBitmapPtr & bitmap, const char * text, float size)
-        {
-            SYS_DEBUG_MEMBER(DM_PACALIB);
-            JNIEnv * env = AndroidAccess::getJNIEnv();
-            JavaString js(text, env);
-            (*classes.draw_text)(env, bitmap->get(), js.get(), size);
-        }
+        JavaBitmapPtr CreateBitmap(int32_t width, int32_t height);
+        void SetColour(float r, float g, float b, float a);
+        void DrawText(const JavaBitmapPtr & bitmap, const char * text, float size);
 
      protected:
-        MyJavaClasses & classes;
+        struct MyJavaClasses
+        {
+            MyJavaClasses(void);
+            MyJavaClasses(JNIEnv * env);
+
+            AndroidAccess::JClassPtr        graphics;
+            AndroidAccess::JFuncObjectPtr   create_bitmap;
+            AndroidAccess::JFuncVoidPtr     set_colour;
+            AndroidAccess::JFuncVoidPtr     draw_text;
+
+        }; // struct MyJavaClasses
+
+        MyJavaClasses classes;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaIface");
@@ -182,6 +182,11 @@ namespace PaCaAndroid
         inline int getHeight(void) const
         {
             return myHeight;
+        }
+
+        inline void SetColour(float r, float g, float b, float a)
+        {
+            GetJavaIface().SetColour(r, g, b, a);
         }
 
         inline void DrawText(const char * text, float size)
