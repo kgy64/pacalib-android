@@ -22,25 +22,25 @@ using namespace PaCaAndroid;
 
 PaCaAndroid::JavaIface * PaCaAndroid::JavaIface::myself;
 
-void JavaIface::SetColour(float r, float g, float b, float a)
+void JavaIface::SetColour(JNIEnv * env, float r, float g, float b, float a)
 {
- JNIEnv * env = AndroidAccess::getJNIEnv();
  (*classes.set_colour)(env, r, g, b, a);
 }
 
-JavaBitmapPtr JavaIface::CreateBitmap(int32_t width, int32_t height)
+JavaBitmapPtr JavaIface::CreateBitmap(JNIEnv * env, int32_t width, int32_t height)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- JNIEnv * env = AndroidAccess::getJNIEnv();
- return JavaBitmap::Create(AndroidAccess::JGlobalRef::Create((*classes.create_bitmap)(env, width, height), env), env);
+ jobject obj = (*classes.create_bitmap)(env, width, height);
+ JavaBitmapPtr p = JavaBitmap::Create(AndroidAccess::JGlobalRef::Create(obj, env), env);
+ env->DeleteLocalRef(obj);
+ return p;
 }
 
-void JavaIface::DrawText(const JavaBitmapPtr & bitmap, const char * text, float size)
+void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float size)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- JNIEnv * env = AndroidAccess::getJNIEnv();
  JavaString js(text, env);
  (*classes.draw_text)(env, bitmap->get(), js.get(), size);
 }
@@ -52,6 +52,7 @@ void JavaIface::DrawText(const JavaBitmapPtr & bitmap, const char * text, float 
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 PaCaAndroid::Surface::Surface(int width, int height):
+    myJNIEnv(AndroidAccess::getJNIEnv()),
     myWidth(width),
     myHeight(height),
     bitmap(CreateBitmap(width, height))
@@ -260,12 +261,7 @@ void Target::Operator(PaCaLib::Oper op)
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 JavaIface::MyJavaClasses::MyJavaClasses(void):
-    MyJavaClasses(AndroidAccess::getJNIEnv())
-{
-}
-
-JavaIface::MyJavaClasses::MyJavaClasses(JNIEnv * env):
-    graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics", true, env)),
+    graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics", true, AndroidAccess::jenv)),
     create_bitmap(AndroidAccess::JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
     set_colour(AndroidAccess::JFuncVoid::Create(*graphics, "SetColor", "(FFFF)V")),
     draw_text(AndroidAccess::JFuncVoid::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;F)V"))

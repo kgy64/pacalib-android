@@ -106,17 +106,17 @@ namespace PaCaAndroid
 
     class JavaIface
     {
+     public:
         inline JavaIface(void)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
         }
 
-        VIRTUAL_IF_DEBUG inline ~JavaIface()
+        VIRTUAL_IF_DEBUG ~JavaIface()
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
         }
 
-     public:
         static inline JavaIface & Get()
         {
             // Note: this class must be used only in one thread, that's why no guard is necessary here.
@@ -127,15 +127,14 @@ namespace PaCaAndroid
             return *myself;
         }
 
-        JavaBitmapPtr CreateBitmap(int32_t width, int32_t height);
-        void SetColour(float r, float g, float b, float a);
-        void DrawText(const JavaBitmapPtr & bitmap, const char * text, float size);
+        JavaBitmapPtr CreateBitmap(JNIEnv * env, int32_t width, int32_t height);
+        void SetColour(JNIEnv * env, float r, float g, float b, float a);
+        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float size);
 
      protected:
         struct MyJavaClasses
         {
             MyJavaClasses(void);
-            MyJavaClasses(JNIEnv * env);
 
             AndroidAccess::JClassPtr        graphics;
             AndroidAccess::JFuncObjectPtr   create_bitmap;
@@ -186,18 +185,18 @@ namespace PaCaAndroid
 
         inline void SetColour(float r, float g, float b, float a)
         {
-            GetJavaIface().SetColour(r, g, b, a);
+            GetJavaIface().SetColour(myJNIEnv, r, g, b, a);
         }
 
         inline void DrawText(const char * text, float size)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             SYS_DEBUG(DL_INFO2, "Drawing text '" << text << "', size=" << size);
-            GetJavaIface().DrawText(bitmap, text, size);
+            GetJavaIface().DrawText(myJNIEnv, bitmap, text, size);
         }
 
      protected:
-        inline static JavaIface & GetJavaIface(void)
+        inline JavaIface & GetJavaIface(void)
         {
             return PaCaAndroid::JavaIface::Get();
         }
@@ -206,12 +205,10 @@ namespace PaCaAndroid
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             SYS_DEBUG(DL_INFO2, "Creating bitmap " << width << "x" << height);
-            return GetJavaIface().CreateBitmap(width, height);
+            return GetJavaIface().CreateBitmap(myJNIEnv, width, height);
         }
 
-        struct argb {
-            uint8_t b, g, r, a;
-        };
+        JNIEnv * myJNIEnv;
 
         int myWidth;
 
