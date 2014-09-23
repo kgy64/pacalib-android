@@ -129,7 +129,7 @@ namespace PaCaAndroid
 
         JavaBitmapPtr CreateBitmap(JNIEnv * env, int32_t width, int32_t height);
         void SetColour(JNIEnv * env, float r, float g, float b, float a);
-        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float size);
+        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize);
 
      protected:
         struct MyJavaClasses
@@ -138,8 +138,7 @@ namespace PaCaAndroid
 
             AndroidAccess::JClassPtr        graphics;
             AndroidAccess::JFuncObjectPtr   create_bitmap;
-            AndroidAccess::JFuncVoidPtr     set_colour;
-            AndroidAccess::JFuncVoidPtr     draw_text;
+            AndroidAccess::JFuncFloatPtr    draw_text;
 
         }; // struct MyJavaClasses
 
@@ -183,17 +182,7 @@ namespace PaCaAndroid
             return myHeight;
         }
 
-        inline void SetColour(float r, float g, float b, float a)
-        {
-            GetJavaIface().SetColour(myJNIEnv, r, g, b, a);
-        }
-
-        inline void DrawText(const char * text, float size)
-        {
-            SYS_DEBUG_MEMBER(DM_PACALIB);
-            SYS_DEBUG(DL_INFO2, "Drawing text '" << text << "', size=" << size);
-            GetJavaIface().DrawText(myJNIEnv, bitmap, text, size);
-        }
+        void DrawText(const char * text, float size);
 
      protected:
         inline JavaIface & GetJavaIface(void)

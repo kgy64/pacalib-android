@@ -22,11 +22,6 @@ using namespace PaCaAndroid;
 
 PaCaAndroid::JavaIface * PaCaAndroid::JavaIface::myself;
 
-void JavaIface::SetColour(JNIEnv * env, float r, float g, float b, float a)
-{
- (*classes.set_colour)(env, r, g, b, a);
-}
-
 JavaBitmapPtr JavaIface::CreateBitmap(JNIEnv * env, int32_t width, int32_t height)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -37,12 +32,12 @@ JavaBitmapPtr JavaIface::CreateBitmap(JNIEnv * env, int32_t width, int32_t heigh
  return p;
 }
 
-void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float size)
+void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  JavaString js(text, env);
- (*classes.draw_text)(env, bitmap->get(), js.get(), size);
+ (*classes.draw_text)(env, bitmap->get(), js.get(), x, y, mode, textColor, textsize, borderColor, borderSize);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -65,6 +60,14 @@ PaCaAndroid::Surface::~Surface()
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Deleted surface: " << myWidth << "x" << myHeight);
+}
+
+void PaCaAndroid::Surface::DrawText(const char * text, float size)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+ SYS_DEBUG(DL_INFO2, "Drawing text '" << text << "', size=" << size);
+
+ GetJavaIface().DrawText(myJNIEnv, bitmap, text, 0.0, 0.0, 0, 0xff000000, size, 0, 0.0);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -168,7 +171,6 @@ void Target::SetColour(double r, double g, double b)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ")");
 
- mySurface.SetColour(r, g, b, 1.0f);
 }
 
 void Target::SetColour(double r, double g, double b, double a)
@@ -176,7 +178,6 @@ void Target::SetColour(double r, double g, double b, double a)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
- mySurface.SetColour(r, g, b, a);
 }
 
 void Target::SetColour(const PaCaLib::Colour & col)
@@ -184,7 +185,6 @@ void Target::SetColour(const PaCaLib::Colour & col)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << col << ")");
 
- mySurface.SetColour(col.r, col.g, col.b, col.a);
 }
 
 void Target::Rectangle(double x, double y, double w, double h)
@@ -263,8 +263,7 @@ void Target::Operator(PaCaLib::Oper op)
 JavaIface::MyJavaClasses::MyJavaClasses(void):
     graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics", true, AndroidAccess::jenv)),
     create_bitmap(AndroidAccess::JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
-    set_colour(AndroidAccess::JFuncVoid::Create(*graphics, "SetColor", "(FFFF)V")),
-    draw_text(AndroidAccess::JFuncVoid::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;F)V"))
+    draw_text(AndroidAccess::JFuncFloat::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;FFIIFIF)F"))
 {
 }
 
