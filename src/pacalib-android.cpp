@@ -32,12 +32,12 @@ JavaBitmapPtr JavaIface::CreateBitmap(JNIEnv * env, int32_t width, int32_t heigh
  return p;
 }
 
-void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize)
+void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  JavaString js(text, env);
- (*classes.draw_text)(env, bitmap->get(), js.get(), x, y, mode, textColor, textsize, borderColor, borderSize);
+ (*classes.draw_text)(env, bitmap->get(), js.get(), x, y, mode, textColor, textsize, borderColor, borderSize, aspect);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -62,12 +62,12 @@ PaCaAndroid::Surface::~Surface()
  SYS_DEBUG(DL_INFO1, "Deleted surface: " << myWidth << "x" << myHeight);
 }
 
-void PaCaAndroid::Surface::DrawText(const char * text, float size)
+void PaCaAndroid::Surface::DrawText(float x, float y, const char * text, int mode, float size, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO2, "Drawing text '" << text << "', size=" << size);
 
- GetJavaIface().DrawText(myJNIEnv, bitmap, text, 0.0, 0.0, 0, 0xff000000, size, 0, 0.0);
+ GetJavaIface().DrawText(myJNIEnv, bitmap, text, x, y, mode, drawColour.getInt(), size, textOutlineColour.getInt(), textOutlineWidth, aspect);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -171,6 +171,7 @@ void Target::SetColour(double r, double g, double b)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ")");
 
+ mySurface.SetColour(r, g, b, 1.0f);
 }
 
 void Target::SetColour(double r, double g, double b, double a)
@@ -178,6 +179,7 @@ void Target::SetColour(double r, double g, double b, double a)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
+ mySurface.SetColour(r, g, b, a);
 }
 
 void Target::SetColour(const PaCaLib::Colour & col)
@@ -185,6 +187,7 @@ void Target::SetColour(const PaCaLib::Colour & col)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << col << ")");
 
+ mySurface.SetColour(col);
 }
 
 void Target::Rectangle(double x, double y, double w, double h)
@@ -221,19 +224,38 @@ double Target::DrawText(double x, double y, PaCaLib::TextMode mode, const char *
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "DrawText(" << x << ", " << y << ", " << (int)mode << ", '" << text << "', " << size << ", " << aspect << ")");
- mySurface.DrawText(text, size);
+
+ int JTextMode = 0;
+
+ switch (mode) {
+    case PaCaLib::LEFT:
+        JTextMode = 0;
+    break;
+    case PaCaLib::CENTER:
+        JTextMode = 1;
+    break;
+    case PaCaLib::RIGHT:
+        JTextMode = 2;
+    break;
+ }
+
+ mySurface.DrawText(x, y, text, JTextMode, size, aspect);
 }
 
 void Target::SetTextOutlineColour(double r, double g, double b, double a)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutlineColour(" << r << ", " << g << ", " << b << ", " << a << ")");
+
+ mySurface.SetTextOutlineColour(r, g, b, a);
 }
 
 void Target::SetTextOutline(double outline)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutline(" << outline << ")");
+
+ mySurface.SetTextOutline(outline);
 }
 
 void Target::Paint(void)
@@ -263,7 +285,7 @@ void Target::Operator(PaCaLib::Oper op)
 JavaIface::MyJavaClasses::MyJavaClasses(void):
     graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics", true, AndroidAccess::jenv)),
     create_bitmap(AndroidAccess::JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
-    draw_text(AndroidAccess::JFuncFloat::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;FFIIFIF)F"))
+    draw_text(AndroidAccess::JFuncFloat::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;FFIIFIFF)F"))
 {
 }
 

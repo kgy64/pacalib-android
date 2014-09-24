@@ -18,7 +18,9 @@
 #include <Debug/Debug.h>
 
 #include <Memory/Memory.h>
+
 #include <android/bitmap.h>
+#include <endian.h>
 
 namespace PaCaAndroid
 {
@@ -129,7 +131,7 @@ namespace PaCaAndroid
 
         JavaBitmapPtr CreateBitmap(JNIEnv * env, int32_t width, int32_t height);
         void SetColour(JNIEnv * env, float r, float g, float b, float a);
-        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize);
+        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize, float aspect);
 
      protected:
         struct MyJavaClasses
@@ -149,7 +151,62 @@ namespace PaCaAndroid
 
         static JavaIface * myself;
 
-    }; // class JavaIface
+    }; // class PaCaAndroid::JavaIface
+
+    /// Java-compatible colour
+    struct JColour
+    {
+        inline JColour(void):
+            int_val(0)
+        {
+        }
+
+        inline JColour(float fr, float fg, float fb, float fa)
+        {
+            SetRGBA(fr, fg, fb, fa);
+        }
+
+        inline JColour(const PaCaLib::Colour & col):
+            JColour(col.r, col.g, col.b, col.a)
+        {
+        }
+
+        union {
+            struct {
+#if _BYTE_ORDER == _LITTLE_ENDIAN
+                uint8_t     r;
+                uint8_t     g;
+                uint8_t     b;
+                uint8_t     a;
+#elif _BYTE_ORDER == _BIG_ENDIAN
+    #error Big endian is not implemented yet
+#else
+    #error Wrong endian type
+#endif
+            };
+
+            uint32_t    int_val;
+        };
+
+        inline void SetRGBA(float fr, float fg, float fb, float fa)
+        {
+            a = (int)(fa * 255.0f + 0.5f);
+            r = (int)(fr * 255.0f + 0.5f);
+            g = (int)(fg * 255.0f + 0.5f);
+            b = (int)(fb * 255.0f + 0.5f);
+        }
+
+        inline void Set(const PaCaLib::Colour & col)
+        {
+            SetRGBA(col.r, col.g, col.b, col.a);
+        }
+
+        inline uint32_t getInt(void) const
+        {
+            return int_val;
+        }
+
+    }; // class PaCaAndroid::JColour
 
     class Surface
     {
@@ -182,7 +239,27 @@ namespace PaCaAndroid
             return myHeight;
         }
 
-        void DrawText(const char * text, float size);
+        inline void SetColour(float r, float g, float b, float a)
+        {
+            drawColour.SetRGBA(r, g, b, a);
+        }
+
+        inline void SetColour(const PaCaLib::Colour & col)
+        {
+            drawColour.Set(col);
+        }
+
+        inline void SetTextOutlineColour(float r, float g, float b, float a = 1.0)
+        {
+            textOutlineColour.SetRGBA(r, g, b, a);
+        }
+
+        inline void SetTextOutline(float outline)
+        {
+            textOutlineWidth = outline;
+        }
+
+        void DrawText(float x, float y, const char * text, int mode, float size, float aspect);
 
      protected:
         inline JavaIface & GetJavaIface(void)
@@ -205,10 +282,16 @@ namespace PaCaAndroid
 
         JavaBitmapPtr bitmap;
 
+        JColour drawColour;
+
+        JColour textOutlineColour;
+
+        float textOutlineWidth;
+
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Surface");
 
-    }; // class Surface;
+    }; // class PaCaAndroid::Surface;
 
     class Target: public PaCaLib::Target
     {
@@ -248,9 +331,9 @@ namespace PaCaAndroid
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Target");
 
-    }; // class Target
+    }; // class PaCaAndroid::Target
 
-} // namespace PaCaLib
+} // namespace PaCaAndroid
 
 #endif /* __SRC_PACALIB_ANDROID_H_INCLUDED__ */
 
