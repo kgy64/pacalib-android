@@ -131,7 +131,7 @@ namespace PaCaAndroid
 
         JavaBitmapPtr CreateBitmap(JNIEnv * env, int32_t width, int32_t height);
         void SetColour(JNIEnv * env, float r, float g, float b, float a);
-        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize, float aspect);
+        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, float offset, int textColor, float textsize, int borderColor, float borderSize, float aspect);
 
      protected:
         struct MyJavaClasses
@@ -259,7 +259,7 @@ namespace PaCaAndroid
             textOutlineWidth = outline;
         }
 
-        void DrawText(float x, float y, const char * text, int mode, float size, float aspect);
+        void DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
 
      protected:
         inline JavaIface & GetJavaIface(void)
@@ -321,7 +321,7 @@ namespace PaCaAndroid
         virtual void NewPath(void) override;
         virtual void NewSubPath(void) override;
         virtual void ClosePath(void) override;
-        virtual double DrawText(double x, double y, PaCaLib::TextMode mode, const char * text, double size, double aspect = 1.0) override;
+        virtual double DrawTextInternal(double x, double y, PaCaLib::TextMode mode, const char * text, double size, double offset, double aspect = 1.0) override;
         virtual void SetTextOutlineColour(double r, double g, double b, double a = 1.0) override;
         virtual void SetTextOutline(double outline) override;
         virtual void Paint(void) override;

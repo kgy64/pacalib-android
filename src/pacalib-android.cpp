@@ -32,12 +32,12 @@ JavaBitmapPtr JavaIface::CreateBitmap(JNIEnv * env, int32_t width, int32_t heigh
  return p;
 }
 
-void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, int textColor, float textsize, int borderColor, float borderSize, float aspect)
+void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, float offset, int textColor, float textsize, int borderColor, float borderSize, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  JavaString js(text, env);
- (*classes.draw_text)(env, bitmap->get(), js.get(), x, y, mode, textColor, textsize, borderColor, borderSize, aspect);
+ (*classes.draw_text)(env, bitmap->get(), js.get(), x, y, mode, offset, textColor, textsize, borderColor, borderSize, aspect); // FFIFIFIFF
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -62,12 +62,12 @@ PaCaAndroid::Surface::~Surface()
  SYS_DEBUG(DL_INFO1, "Deleted surface: " << myWidth << "x" << myHeight);
 }
 
-void PaCaAndroid::Surface::DrawText(float x, float y, const char * text, int mode, float size, float aspect)
+void PaCaAndroid::Surface::DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO2, "Drawing text '" << text << "', size=" << size);
 
- GetJavaIface().DrawText(myJNIEnv, bitmap, text, x, y, mode, drawColour.getInt(), size, textOutlineColour.getInt(), textOutlineWidth, aspect);
+ GetJavaIface().DrawText(myJNIEnv, bitmap, text, x, y, mode, offset, drawColour.getInt(), size, textOutlineColour.getInt(), textOutlineWidth, aspect);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -220,10 +220,10 @@ void Target::ClosePath(void)
  SYS_DEBUG(DL_INFO1, "ClosePath()");
 }
 
-double Target::DrawText(double x, double y, PaCaLib::TextMode mode, const char * text, double size, double aspect)
+double Target::DrawTextInternal(double x, double y, PaCaLib::TextMode mode, const char * text, double size, double offset, double aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "DrawText(" << x << ", " << y << ", " << (int)mode << ", '" << text << "', " << size << ", " << aspect << ")");
+ SYS_DEBUG(DL_INFO1, "DrawText(" << x << ", " << y << ", " << (int)mode << ", '" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ")");
 
  int JTextMode = 0;
 
@@ -239,7 +239,7 @@ double Target::DrawText(double x, double y, PaCaLib::TextMode mode, const char *
     break;
  }
 
- mySurface.DrawText(x, y, text, JTextMode, size, aspect);
+ mySurface.DrawText(x, y, text, JTextMode, offset, size, aspect);
 }
 
 void Target::SetTextOutlineColour(double r, double g, double b, double a)
@@ -285,7 +285,7 @@ void Target::Operator(PaCaLib::Oper op)
 JavaIface::MyJavaClasses::MyJavaClasses(void):
     graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics", true, AndroidAccess::jenv)),
     create_bitmap(AndroidAccess::JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
-    draw_text(AndroidAccess::JFuncFloat::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;FFIIFIFF)F"))
+    draw_text(AndroidAccess::JFuncFloat::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;FFIFIFIFF)F"))
 {
 }
 
