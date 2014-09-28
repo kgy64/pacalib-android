@@ -27,15 +27,14 @@ namespace PaCaAndroid
     class JavaBitmap;
     typedef MEM::shared_ptr<JavaBitmap> JavaBitmapPtr;
 
-    class JavaBitmap
+    class JavaBitmap: public AndroidAccess::JObject
     {
-        inline JavaBitmap(AndroidAccess::JGlobalRefPtr obj, JNIEnv * env = AndroidAccess::getJNIEnv()):
-            env(env),
-            obj(obj),
+        inline JavaBitmap(jobject obj, JNIEnv * env = AndroidAccess::getJNIEnv()):
+            AndroidAccess::JObject(obj, env),
             pixel_data(nullptr)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
-            AndroidBitmap_lockPixels(env, obj->get(), &pixel_data);
+            AndroidBitmap_lockPixels(env, get(), &pixel_data);
             ASSERT(pixel_data, "lockPixels() failed");
         }
 
@@ -44,18 +43,13 @@ namespace PaCaAndroid
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             if (pixel_data) {
-                AndroidBitmap_unlockPixels(env, obj->get());
+                AndroidBitmap_unlockPixels(env, get());
             }
         }
 
-        static inline JavaBitmapPtr Create(AndroidAccess::JGlobalRefPtr obj, JNIEnv * env = AndroidAccess::getJNIEnv())
+        static inline JavaBitmapPtr Create(jobject obj, JNIEnv * env = AndroidAccess::getJNIEnv())
         {
             return JavaBitmapPtr(new JavaBitmap(obj, env));
-        }
-
-        inline jobject get(void) const
-        {
-            return obj->get();
         }
 
         inline void * getPixelData(void)
@@ -64,10 +58,6 @@ namespace PaCaAndroid
         }
 
      protected:
-        JNIEnv * env;
-
-        AndroidAccess::JGlobalRefPtr obj;
-
         void * pixel_data;
 
      private:
@@ -214,6 +204,11 @@ namespace PaCaAndroid
         Surface(int width, int height);
         VIRTUAL_IF_DEBUG ~Surface();
 
+        inline JNIEnv * getEnv(void)
+        {
+            return myJNIEnv;
+        }
+
         inline void * getData(void)
         {
             return bitmap->getPixelData();
@@ -271,7 +266,7 @@ namespace PaCaAndroid
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             SYS_DEBUG(DL_INFO2, "Creating bitmap " << width << "x" << height);
-            return GetJavaIface().CreateBitmap(myJNIEnv, width, height);
+            return GetJavaIface().CreateBitmap(getEnv(), width, height);
         }
 
         JNIEnv * myJNIEnv;
@@ -293,6 +288,8 @@ namespace PaCaAndroid
 
     }; // class PaCaAndroid::Surface;
 
+    typedef PaCaLib::PathPtr PathPtr;
+
     class Target: public PaCaLib::Target
     {
         Surface mySurface;
@@ -305,33 +302,80 @@ namespace PaCaAndroid
         virtual int GetHeight(void) const override;
         virtual const void * GetPixelData(void) const override;
         virtual int GetLogicalWidth(void) const override;
-        virtual void Scale(double w, double h) override;
-        virtual void Stroke(void) override;
-        virtual void Fill(void) override;
-        virtual void FillPreserve(void) override;
-        virtual void SetLineWidth(double width) override;
-        virtual void Move(double x, double y) override;
-        virtual void Line(double x, double y) override;
+        virtual void Scale(float w, float h) override;
+        virtual void SetLineWidth(float width) override;
+        virtual void Move(float x, float y) override;
+        virtual void Line(float x, float y) override;
         virtual void SetLineCap(PaCaLib::LineCap mode) override;
-        virtual void SetColour(double r, double g, double b) override;
-        virtual void SetColour(double r, double g, double b, double a) override;
+        virtual void SetColour(float r, float g, float b) override;
+        virtual void SetColour(float r, float g, float b, float a) override;
         virtual void SetColour(const PaCaLib::Colour & col) override;
-        virtual void Rectangle(double x, double y, double w, double h) override;
-        virtual void Arc(double xc, double yc, double r, double a1, double a2) override;
-        virtual void NewPath(void) override;
-        virtual void NewSubPath(void) override;
-        virtual void ClosePath(void) override;
-        virtual double DrawTextInternal(double x, double y, PaCaLib::TextMode mode, const char * text, double size, double offset, double aspect = 1.0) override;
-        virtual void SetTextOutlineColour(double r, double g, double b, double a = 1.0) override;
-        virtual void SetTextOutline(double outline) override;
+        virtual void Rectangle(float x, float y, float w, float h) override;
+        virtual void Arc(float xc, float yc, float r, float a1, float a2) override;
+        virtual float DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect = 1.0) override;
+        virtual void SetTextOutlineColour(float r, float g, float b, float a = 1.0) override;
+        virtual void SetTextOutline(float outline) override;
         virtual void Paint(void) override;
-        virtual void Paint(double alpha) override;
+        virtual void Paint(float alpha) override;
         virtual void Operator(PaCaLib::Oper op) override;
+        virtual PathPtr NewPath(void) override;
+
+        inline JNIEnv * getEnv(void)
+        {
+            return mySurface.getEnv();
+        }
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Target");
 
     }; // class PaCaAndroid::Target
+
+    class Path: public PaCaLib::Path
+    {
+        friend class Target;
+
+     public:
+        virtual ~Path();
+
+     protected:
+        Path(Target & parent);
+
+        inline JavaIface & GetJavaIface(void)
+        {
+            return PaCaAndroid::JavaIface::Get();
+        }
+
+        virtual void Move(float x, float y) override;
+        virtual void Line(float x, float y) override;
+        virtual void Arc(float xc, float yc, float r, float a1, float a2) override;
+        virtual void Close(void) override;
+        virtual void Clear(void) override;
+        virtual void SetLineWidth(float width) override;
+        virtual void SetLineCap(PaCaLib::LineCap mode) override;
+        virtual void Fill(void) override;
+        virtual void Stroke(void) override;
+        virtual void SetColour(float r, float g, float b) override;
+        virtual void SetColour(float r, float g, float b, float a) override;
+        virtual void SetColour(const PaCaLib::Colour & col) override;
+
+     protected:
+        Target & parent;
+
+        struct MyJavaPath
+        {
+            MyJavaPath(JNIEnv * env);
+
+            AndroidAccess::JClassPtr        path;
+            AndroidAccess::JFuncVoidPtr     arc;
+
+        }; // struct PaCaAndroid::Target::Path
+
+        MyJavaPath path;
+
+     private:
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::Path");
+
+    }; // class PaCaAndroid::Path
 
 } // namespace PaCaAndroid
 
