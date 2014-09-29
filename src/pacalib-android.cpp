@@ -294,15 +294,7 @@ void Path::Stroke(void)
 {
 }
 
-void Path::SetColour(float r, float g, float b)
-{
-}
-
 void Path::SetColour(float r, float g, float b, float a)
-{
-}
-
-void Path::SetColour(const PaCaLib::Colour & col)
 {
 }
 

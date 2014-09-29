@@ -378,9 +378,7 @@ namespace PaCaAndroid
         virtual void SetLineCap(PaCaLib::LineCap mode) override;
         virtual void Fill(void) override;
         virtual void Stroke(void) override;
-        virtual void SetColour(float r, float g, float b) override;
         virtual void SetColour(float r, float g, float b, float a) override;
-        virtual void SetColour(const PaCaLib::Colour & col) override;
 
      protected:
         Draw & parent;
