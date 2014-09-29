@@ -289,27 +289,49 @@ namespace PaCaAndroid
     }; // class PaCaAndroid::Surface;
 
     typedef PaCaLib::PathPtr PathPtr;
+    typedef PaCaLib::DrawPtr DrawPtr;
 
     class Target: public PaCaLib::Target
     {
+        friend class PaCaLib::Target;
+
+        Target(int width, int height);
+
         Surface mySurface;
 
      public:
-        Target(int width, int height);
         virtual ~Target();
 
+        inline Surface & getSurface(void)
+        {
+            return mySurface;
+        }
+
+     protected:
         virtual int GetWidth(void) const override;
         virtual int GetHeight(void) const override;
         virtual const void * GetPixelData(void) const override;
         virtual int GetLogicalWidth(void) const override;
+        virtual DrawPtr Draw(void) override;
+
+    }; // class PaCaAndroid::Target
+
+    class Path;
+
+    class Draw: public PaCaLib::Draw
+    {
+        friend class PaCaAndroid::Target;
+        friend class PaCaAndroid::Path;
+
+     protected:
+        Draw(PaCaAndroid::Target & target);
+
         virtual void Scale(float w, float h) override;
         virtual void SetLineWidth(float width) override;
         virtual void Move(float x, float y) override;
         virtual void Line(float x, float y) override;
         virtual void SetLineCap(PaCaLib::LineCap mode) override;
-        virtual void SetColour(float r, float g, float b) override;
         virtual void SetColour(float r, float g, float b, float a) override;
-        virtual void SetColour(const PaCaLib::Colour & col) override;
         virtual void Rectangle(float x, float y, float w, float h) override;
         virtual void Arc(float xc, float yc, float r, float a1, float a2) override;
         virtual float DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect = 1.0) override;
@@ -322,23 +344,25 @@ namespace PaCaAndroid
 
         inline JNIEnv * getEnv(void)
         {
-            return mySurface.getEnv();
+            return target.getSurface().getEnv();
         }
 
-     private:
-        SYS_DEFINE_CLASS_NAME("PaCaAndroid::Target");
+        PaCaAndroid::Target & target;
 
-    }; // class PaCaAndroid::Target
+     private:
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::Draw");
+
+    }; // class PaCaAndroid::Draw
 
     class Path: public PaCaLib::Path
     {
-        friend class Target;
+        friend class Draw;
 
      public:
         virtual ~Path();
 
      protected:
-        Path(Target & parent);
+        Path(Draw & parent);
 
         inline JavaIface & GetJavaIface(void)
         {
@@ -359,7 +383,7 @@ namespace PaCaAndroid
         virtual void SetColour(const PaCaLib::Colour & col) override;
 
      protected:
-        Target & parent;
+        Draw & parent;
 
         struct MyJavaPath
         {

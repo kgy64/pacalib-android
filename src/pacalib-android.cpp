@@ -43,7 +43,7 @@ void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char 
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-PaCaAndroid::Surface::Surface(int width, int height):
+Surface::Surface(int width, int height):
     myJNIEnv(AndroidAccess::getJNIEnv()),
     myWidth(width),
     myHeight(height),
@@ -53,13 +53,13 @@ PaCaAndroid::Surface::Surface(int width, int height):
  SYS_DEBUG(DL_INFO1, "Created surface: " << myWidth << "x" << myHeight);
 }
 
-PaCaAndroid::Surface::~Surface()
+Surface::~Surface()
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Deleted surface: " << myWidth << "x" << myHeight);
 }
 
-void PaCaAndroid::Surface::DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect)
+void Surface::DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO2, "Drawing text '" << text << "', size=" << size);
@@ -78,110 +78,108 @@ PaCaLib::TargetPtr PaCaLib::Target::Create(int width, int height)
  return PaCaLib::TargetPtr(new PaCaAndroid::Target(width, height));
 }
 
-PaCaAndroid::Target::Target(int width, int height):
+Target::Target(int width, int height):
     mySurface(width, height)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Created target: " << width << "x" << height);
 }
 
-PaCaAndroid::Target::~Target()
+Target::~Target()
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "Deleted target");
+ SYS_DEBUG(DL_INFO1, "Deleted target: " << width << "x" << height);
+}
+
+const void * Target::GetPixelData(void) const
+{
+ return mySurface.getData();
 }
 
 int Target::GetHeight(void) const
 {
- SYS_DEBUG_MEMBER(DM_PACALIB);
  return mySurface.getHeight();
 }
 
 int Target::GetWidth(void) const
 {
- SYS_DEBUG_MEMBER(DM_PACALIB);
  return mySurface.getWidth();
 }
 
 int Target::GetLogicalWidth(void) const
 {
- SYS_DEBUG_MEMBER(DM_PACALIB);
  return mySurface.getWidth();
 }
 
-const void * Target::GetPixelData(void) const
+PaCaLib::DrawPtr Target::Draw(void)
 {
- SYS_DEBUG_MEMBER(DM_PACALIB);
- return mySurface.getData();
+ return PaCaLib::DrawPtr(new PaCaAndroid::Draw(*this));
 }
 
-void Target::Scale(float w, float h)
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ *                                                                                       *
+ *         class Draw:                                                                   *
+ *                                                                                       *
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+Draw::Draw(PaCaAndroid::Target & target):
+    target(target)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+}
+
+void Draw::Scale(float w, float h)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Scale(" << w << ", " << h << ")");
 }
 
-void Target::SetLineWidth(float width)
+void Draw::SetLineWidth(float width)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetLineWidth(" << width << ")");
 }
 
-void Target::Move(float x, float y)
+void Draw::Move(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Move(" << x << ", " << y << ")");
 }
 
-void Target::Line(float x, float y)
+void Draw::Line(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Line(" << x << ", " << y << ")");
 }
 
-void Target::SetLineCap(PaCaLib::LineCap mode)
+void Draw::SetLineCap(PaCaLib::LineCap mode)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetLineCap(" << (int)mode << ")");
 }
 
-void Target::SetColour(float r, float g, float b)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ")");
-
- mySurface.SetColour(r, g, b, 1.0f);
-}
-
-void Target::SetColour(float r, float g, float b, float a)
+void Draw::SetColour(float r, float g, float b, float a)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
- mySurface.SetColour(r, g, b, a);
+ target.getSurface().SetColour(r, g, b, a);
 }
 
-void Target::SetColour(const PaCaLib::Colour & col)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "SetColour(" << col << ")");
-
- mySurface.SetColour(col);
-}
-
-void Target::Rectangle(float x, float y, float w, float h)
+void Draw::Rectangle(float x, float y, float w, float h)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Rectangle(" << x << ", " << y << ", " << w << ", " << h << ")");
 }
 
-void Target::Arc(float xc, float yc, float r, float a1, float a2)
+void Draw::Arc(float xc, float yc, float r, float a1, float a2)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Arc(" << xc << ", " << yc << ", " << r << ", " << a1 << ", " << a2 << ")");
 }
 
-float Target::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect)
+float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "DrawText(" << x << ", " << y << ", " << (int)mode << ", '" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ")");
@@ -200,44 +198,44 @@ float Target::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const c
     break;
  }
 
- mySurface.DrawText(x, y, text, JTextMode, offset, size, aspect);
+ target.getSurface().DrawText(x, y, text, JTextMode, offset, size, aspect);
 }
 
-void Target::SetTextOutlineColour(float r, float g, float b, float a)
+void Draw::SetTextOutlineColour(float r, float g, float b, float a)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutlineColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
- mySurface.SetTextOutlineColour(r, g, b, a);
+ target.getSurface().SetTextOutlineColour(r, g, b, a);
 }
 
-void Target::SetTextOutline(float outline)
+void Draw::SetTextOutline(float outline)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutline(" << outline << ")");
 
- mySurface.SetTextOutline(outline);
+ target.getSurface().SetTextOutline(outline);
 }
 
-void Target::Paint(void)
+void Draw::Paint(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Paint()");
 }
 
-void Target::Paint(float alpha)
+void Draw::Paint(float alpha)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Paint(" << alpha << ")");
 }
 
-void Target::Operator(PaCaLib::Oper op)
+void Draw::Operator(PaCaLib::Oper op)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Operator(" << (int)op << ")");
 }
 
-PathPtr Target::NewPath(void)
+PathPtr Draw::NewPath(void)
 {
  return PathPtr(new Path(*this));
 }
@@ -248,7 +246,7 @@ PathPtr Target::NewPath(void)
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Path::Path(Target & parent):
+Path::Path(Draw & parent):
     parent(parent),
     path(parent.getEnv())
 {
