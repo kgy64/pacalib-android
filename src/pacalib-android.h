@@ -29,12 +29,12 @@ namespace PaCaAndroid
 
     class JavaBitmap: public AndroidAccess::JObject
     {
-        inline JavaBitmap(jobject obj, JNIEnv * env = AndroidAccess::getJNIEnv()):
+        inline JavaBitmap(jobject obj, JNIEnv * env):
             AndroidAccess::JObject(obj, env),
             pixel_data(nullptr)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
-            AndroidBitmap_lockPixels(env, get(), &pixel_data);
+            AndroidBitmap_lockPixels(env, getObject(), &pixel_data);
             ASSERT(pixel_data, "lockPixels() failed");
         }
 
@@ -43,7 +43,7 @@ namespace PaCaAndroid
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             if (pixel_data) {
-                AndroidBitmap_unlockPixels(env, get());
+                AndroidBitmap_unlockPixels(env, getObject());
             }
         }
 
@@ -64,6 +64,33 @@ namespace PaCaAndroid
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaBitmap");
 
     }; // class PaCaAndroid::JavaBitmap
+
+    class JavaTarget;
+    typedef MEM::shared_ptr<JavaTarget> JavaTargetPtr;
+
+    class JavaTarget: public AndroidAccess::JObject
+    {
+        inline JavaTarget(jobject obj, JNIEnv * env):
+            AndroidAccess::JObject(obj, env)
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+        }
+
+     public:
+        VIRTUAL_IF_DEBUG inline ~JavaTarget()
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+        }
+
+        static inline JavaTargetPtr Create(jobject obj, JNIEnv * env = AndroidAccess::getJNIEnv())
+        {
+            return JavaTargetPtr(new JavaTarget(obj, env));
+        }
+
+     private:
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaTarget");
+
+    }; // class PaCaAndroid::JavaTarget
 
     class JavaString
     {
@@ -120,6 +147,7 @@ namespace PaCaAndroid
         }
 
         JavaBitmapPtr CreateBitmap(JNIEnv * env, int32_t width, int32_t height);
+        JavaTargetPtr CreateTarget(JNIEnv * env, JavaBitmapPtr & bitmap);
         void SetColour(JNIEnv * env, float r, float g, float b, float a);
         void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, float offset, int textColor, float textsize, int borderColor, float borderSize, float aspect);
 
@@ -130,6 +158,7 @@ namespace PaCaAndroid
 
             AndroidAccess::JClassPtr        graphics;
             AndroidAccess::JFuncObjectPtr   create_bitmap;
+            AndroidAccess::JFuncObjectPtr   create_target;
             AndroidAccess::JFuncFloatPtr    draw_text;
 
         }; // struct MyJavaClasses
@@ -209,6 +238,11 @@ namespace PaCaAndroid
             return myJNIEnv;
         }
 
+        inline JavaBitmapPtr getBitmap(void)
+        {
+            return bitmap;
+        }
+
         inline void * getData(void)
         {
             return bitmap->getPixelData();
@@ -257,7 +291,7 @@ namespace PaCaAndroid
         void DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
 
      protected:
-        inline JavaIface & GetJavaIface(void)
+        static inline JavaIface & GetJavaIface(void)
         {
             return PaCaAndroid::JavaIface::Get();
         }
@@ -342,12 +376,25 @@ namespace PaCaAndroid
         virtual void Operator(PaCaLib::Oper op) override;
         virtual PathPtr NewPath(void) override;
 
+        static inline JavaIface & GetJavaIface(void)
+        {
+            return PaCaAndroid::JavaIface::Get();
+        }
+
         inline JNIEnv * getEnv(void)
         {
             return target.getSurface().getEnv();
         }
 
+        inline JavaTargetPtr CreateTarget(JavaBitmapPtr bitmap)
+        {
+            SYS_DEBUG_MEMBER(DM_PACALIB);
+            return GetJavaIface().CreateTarget(getEnv(), bitmap);
+        }
+
         PaCaAndroid::Target & target;
+
+        JavaTargetPtr javaTarget;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Draw");
@@ -364,7 +411,7 @@ namespace PaCaAndroid
      protected:
         Path(Draw & parent);
 
-        inline JavaIface & GetJavaIface(void)
+        static inline JavaIface & GetJavaIface(void)
         {
             return PaCaAndroid::JavaIface::Get();
         }

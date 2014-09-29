@@ -29,12 +29,19 @@ JavaBitmapPtr JavaIface::CreateBitmap(JNIEnv * env, int32_t width, int32_t heigh
  return JavaBitmap::Create((*classes.create_bitmap)(env, width, height), env);
 }
 
+JavaTargetPtr JavaIface::CreateTarget(JNIEnv * env, JavaBitmapPtr & bitmap)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ return JavaTarget::Create((*classes.create_target)(env, bitmap->getObject()), env);
+}
+
 void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, float offset, int textColor, float textsize, int borderColor, float borderSize, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  JavaString js(text, env);
- (*classes.draw_text)(env, bitmap->get(), js.get(), x, y, mode, offset, textColor, textsize, borderColor, borderSize, aspect); // FFIFIFIFF
+ (*classes.draw_text)(env, bitmap->getObject(), js.get(), x, y, mode, offset, textColor, textsize, borderColor, borderSize, aspect); // FFIFIFIFF
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -123,7 +130,8 @@ PaCaLib::DrawPtr Target::Draw(void)
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Draw::Draw(PaCaAndroid::Target & target):
-    target(target)
+    target(target),
+    javaTarget(CreateTarget(target.getSurface().getBitmap()))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
@@ -319,6 +327,7 @@ Path::MyJavaPath::MyJavaPath(JNIEnv * env):
 JavaIface::MyJavaClasses::MyJavaClasses(void):
     graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics")),
     create_bitmap(AndroidAccess::JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
+    create_target(AndroidAccess::JFuncObject::Create(*graphics, "CreateTarget", "(Landroid/graphics/Bitmap;)Lcom/android/ducktornavi/DucktorNaviGraphics$Target;")),
     draw_text(AndroidAccess::JFuncFloat::Create(*graphics, "DrawText", "(Landroid/graphics/Bitmap;Ljava/lang/String;FFIFIFIFF)F"))
 {
 }
