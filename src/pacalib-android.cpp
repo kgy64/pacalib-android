@@ -40,8 +40,34 @@ void JavaIface::DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char 
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- JavaString js(text, env);
+ AndroidAccess::JavaString js(text, env);
  (*classes.draw_text)(env, bitmap->getObject(), js.get(), x, y, mode, offset, textColor, textsize, borderColor, borderSize, aspect); // FFIFIFIFF
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
+ *                                                                                       *
+ *         class JavaTarget:                                                             *
+ *                                                                                       *
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+JavaTarget::JavaTarget(jobject obj, JNIEnv * env):
+    AndroidAccess::JClass("com/android/ducktornavi/DucktorNaviGraphics$Target", obj, env),
+    draw_text(AndroidAccess::JFuncFloat::Create(*this, "DrawText", "(Ljava/lang/String;FFIFIFIFF)F"))
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+}
+
+JavaTarget::~JavaTarget()
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+}
+
+void JavaTarget::DrawText(float x, float y, const char * text, int mode, float offset, float textsize, float aspect)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ AndroidAccess::JavaString js(text, getEnv());
+ (*draw_text)(getEnv(), js.get(), x, y, mode, offset, 0, textsize, 0, 0, aspect); // FFIFIFIFF
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -95,7 +121,7 @@ Target::Target(int width, int height):
 Target::~Target()
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "Deleted target: " << width << "x" << height);
+ SYS_DEBUG(DL_INFO1, "Deleted target: " << getSurface().getWidth() << "x" << getSurface().getHeight());
 }
 
 const void * Target::GetPixelData(void) const
@@ -206,7 +232,9 @@ float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const cha
     break;
  }
 
- target.getSurface().DrawText(x, y, text, JTextMode, offset, size, aspect);
+ javaTarget->DrawText(x, y, text, JTextMode, offset, size, aspect);
+
+ // target.getSurface().DrawText(x, y, text, JTextMode, offset, size, aspect);
 }
 
 void Draw::SetTextOutlineColour(float r, float g, float b, float a)
@@ -313,7 +341,7 @@ void Path::SetColour(float r, float g, float b, float a)
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Path::MyJavaPath::MyJavaPath(JNIEnv * env):
-    path(AndroidAccess::JClass::Create("android/graphics/Path", true, env)),
+    path(AndroidAccess::JClass::Create("android/graphics/Path", nullptr, env)),
     arc(AndroidAccess::JFuncVoid::Create(*path, "addArc", "(Landroid/graphics/RectF;FF)V"))
 {
 }

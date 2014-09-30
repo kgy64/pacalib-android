@@ -68,60 +68,26 @@ namespace PaCaAndroid
     class JavaTarget;
     typedef MEM::shared_ptr<JavaTarget> JavaTargetPtr;
 
-    class JavaTarget: public AndroidAccess::JObject
+    class JavaTarget: public AndroidAccess::JClass
     {
-        inline JavaTarget(jobject obj, JNIEnv * env):
-            AndroidAccess::JObject(obj, env)
-        {
-            SYS_DEBUG_MEMBER(DM_PACALIB);
-        }
+        JavaTarget(jobject obj, JNIEnv * env);
 
      public:
-        VIRTUAL_IF_DEBUG inline ~JavaTarget()
-        {
-            SYS_DEBUG_MEMBER(DM_PACALIB);
-        }
+        VIRTUAL_IF_DEBUG ~JavaTarget();
 
         static inline JavaTargetPtr Create(jobject obj, JNIEnv * env = AndroidAccess::getJNIEnv())
         {
             return JavaTargetPtr(new JavaTarget(obj, env));
         }
 
+        void DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
+
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaTarget");
 
+        AndroidAccess::JFuncFloatPtr draw_text;
+
     }; // class PaCaAndroid::JavaTarget
-
-    class JavaString
-    {
-     public:
-        inline JavaString(const char * text, JNIEnv * env = AndroidAccess::getJNIEnv()):
-            myJNIenv(env),
-            myString(myJNIenv->NewStringUTF(text))
-        {
-            SYS_DEBUG_MEMBER(DM_PACALIB);
-        }
-
-        inline ~JavaString()
-        {
-            SYS_DEBUG_MEMBER(DM_PACALIB);
-
-            myJNIenv->DeleteLocalRef(myString);
-        }
-
-        inline const jstring & get(void) const
-        {
-            return myString;
-        }
-
-     private:
-        SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaString");
-
-        JNIEnv * myJNIenv;
-
-        jstring myString;
-
-    }; // class PaCaAndroid::JavaString
 
     class JavaIface
     {
@@ -341,12 +307,20 @@ namespace PaCaAndroid
             return mySurface;
         }
 
+        inline JNIEnv * getEnv(void)
+        {
+            return getSurface().getEnv();
+        }
+
      protected:
         virtual int GetWidth(void) const override;
         virtual int GetHeight(void) const override;
         virtual const void * GetPixelData(void) const override;
         virtual int GetLogicalWidth(void) const override;
         virtual DrawPtr Draw(void) override;
+
+     private:
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::Target");
 
     }; // class PaCaAndroid::Target
 
@@ -389,7 +363,7 @@ namespace PaCaAndroid
         inline JavaTargetPtr CreateTarget(JavaBitmapPtr bitmap)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
-            return GetJavaIface().CreateTarget(getEnv(), bitmap);
+            return GetJavaIface().CreateTarget(AndroidAccess::getJNIEnv(), bitmap);
         }
 
         PaCaAndroid::Target & target;
