@@ -115,7 +115,6 @@ namespace PaCaAndroid
         JavaBitmapPtr CreateBitmap(JNIEnv * env, int32_t width, int32_t height);
         JavaTargetPtr CreateTarget(JNIEnv * env, JavaBitmapPtr & bitmap);
         void SetColour(JNIEnv * env, float r, float g, float b, float a);
-        void DrawText(JNIEnv * env, const JavaBitmapPtr & bitmap, const char * text, float x, float y, int mode, float offset, int textColor, float textsize, int borderColor, float borderSize, float aspect);
 
      protected:
         struct MyJavaClasses
@@ -253,8 +252,6 @@ namespace PaCaAndroid
         {
             textOutlineWidth = outline;
         }
-
-        void DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
 
      protected:
         static inline JavaIface & GetJavaIface(void)
