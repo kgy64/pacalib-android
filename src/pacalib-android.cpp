@@ -12,6 +12,9 @@
 
 #include <android-render.h>
 
+DEFINE_JAVA_CLASS(A, "com/android/ducktornavi/DucktorNaviGraphics");
+DEFINE_JAVA_CLASS(B, "com/android/ducktornavi/DucktorNaviGraphics$Target");
+
 using namespace PaCaAndroid;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
