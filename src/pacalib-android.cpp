@@ -70,7 +70,7 @@ void JavaTarget::DrawText(float x, float y, const char * text, int mode, float o
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  AndroidAccess::JavaString js(text, getEnv());
- (*draw_text)(getEnv(), js.get(), x, y, mode, offset, 0, textsize, 0, 0, aspect); // FFIFIFIFF
+ (*draw_text)(getEnv(), js.get(), x, y, mode, offset, 0xffffffff, textsize, 0, 0.0f, aspect); // FFIFIFIFF
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -219,7 +219,7 @@ void Draw::Arc(float xc, float yc, float r, float a1, float a2)
 float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "DrawText(" << x << ", " << y << ", " << (int)mode << ", '" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ")");
+ SYS_DEBUG(DL_INFO1, "DrawTextInternal(" << x << ", " << y << ", " << (int)mode << ", '" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ")");
 
  int JTextMode = 0;
 
