@@ -65,35 +65,39 @@ namespace PaCaAndroid
 
     }; // class PaCaAndroid::JavaBitmap
 
-    class JavaTarget;
-    typedef MEM::shared_ptr<JavaTarget> JavaTargetPtr;
+    class JavaDraw;
+    typedef MEM::shared_ptr<JavaDraw> JavaDrawPtr;
 
-    class JavaTarget: public AndroidAccess::JClass
+    class JavaDraw: public AndroidAccess::JClass
     {
-        JavaTarget(jobject obj, JNIEnv * env);
+        JavaDraw(jobject obj, JNIEnv * env);
 
      public:
-        VIRTUAL_IF_DEBUG ~JavaTarget();
+        VIRTUAL_IF_DEBUG ~JavaDraw();
 
-        static inline JavaTargetPtr Create(jobject obj, JNIEnv * env = AndroidAccess::getJNIEnv())
+        static inline JavaDrawPtr Create(jobject obj, JNIEnv * env = AndroidAccess::getJNIEnv())
         {
-            return JavaTargetPtr(new JavaTarget(obj, env));
+            return JavaDrawPtr(new JavaDraw(obj, env));
         }
 
         void DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
         void SetBorderSize(float size);
         void SetBorderColour(float r, float g, float b, float a);
         void SetColour(float r, float g, float b, float a);
+        void SetLineCap(PaCaLib::LineCap mode);
+        void SetLineWidth(float width);
 
      private:
-        SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaTarget");
+        SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaDraw");
 
         AndroidAccess::JFuncFloatPtr draw_text;
         AndroidAccess::JFuncVoidPtr  set_border_size;
         AndroidAccess::JFuncVoidPtr  set_border_colour;
         AndroidAccess::JFuncVoidPtr  set_colour;
+        AndroidAccess::JFuncVoidPtr  set_line_cap;
+        AndroidAccess::JFuncVoidPtr  set_line_width;
 
-    }; // class PaCaAndroid::JavaTarget
+    }; // class PaCaAndroid::JavaDraw
 
     class JavaIface
     {
@@ -118,8 +122,8 @@ namespace PaCaAndroid
             return *myself;
         }
 
-        JavaBitmapPtr CreateBitmap(JNIEnv * env, int32_t width, int32_t height);
-        JavaTargetPtr CreateTarget(JNIEnv * env, JavaBitmapPtr & bitmap);
+        JavaBitmapPtr CreateJavaBitmap(JNIEnv * env, int32_t width, int32_t height);
+        JavaDrawPtr CreateJavaDraw(JNIEnv * env, JavaBitmapPtr & bitmap);
         void SetColour(JNIEnv * env, float r, float g, float b, float a);
 
      protected:
@@ -245,11 +249,11 @@ namespace PaCaAndroid
             return PaCaAndroid::JavaIface::Get();
         }
 
-        inline JavaBitmapPtr CreateBitmap(int width, int height)
+        inline JavaBitmapPtr CreateJavaBitmap(int width, int height)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             SYS_DEBUG(DL_INFO2, "Creating bitmap " << width << "x" << height);
-            return GetJavaIface().CreateBitmap(getEnv(), width, height);
+            return GetJavaIface().CreateJavaBitmap(getEnv(), width, height);
         }
 
         JNIEnv * myJNIEnv;
@@ -312,18 +316,15 @@ namespace PaCaAndroid
         Draw(PaCaAndroid::Target & target);
 
         virtual void Scale(float w, float h) override;
-        virtual void SetLineWidth(float width) override;
-        virtual void Move(float x, float y) override;
-        virtual void Line(float x, float y) override;
-        virtual void SetLineCap(PaCaLib::LineCap mode) override;
         virtual void SetColour(float r, float g, float b, float a) override;
-        virtual void Rectangle(float x, float y, float w, float h) override;
-        virtual void Arc(float xc, float yc, float r, float a1, float a2) override;
         virtual float DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect = 1.0) override;
         virtual void SetTextOutlineColour(float r, float g, float b, float a = 1.0) override;
         virtual void SetTextOutline(float outline) override;
+        virtual void SetLineCap(PaCaLib::LineCap mode) override;
+        virtual void SetLineWidth(float width) override;
         virtual void Paint(void) override;
         virtual void Paint(float alpha) override;
+        virtual void Fill(void) override;
         virtual void Operator(PaCaLib::Oper op) override;
         virtual PathPtr NewPath(void) override;
 
@@ -337,15 +338,15 @@ namespace PaCaAndroid
             return target.getSurface().getEnv();
         }
 
-        inline JavaTargetPtr CreateTarget(JavaBitmapPtr bitmap)
+        inline JavaDrawPtr CreateJavaDraw(JavaBitmapPtr bitmap)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
-            return GetJavaIface().CreateTarget(AndroidAccess::getJNIEnv(), bitmap);
+            return GetJavaIface().CreateJavaDraw(AndroidAccess::getJNIEnv(), bitmap);
         }
 
         PaCaAndroid::Target & target;
 
-        JavaTargetPtr javaTarget;
+        JavaDrawPtr javaTarget;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Draw");
@@ -372,11 +373,7 @@ namespace PaCaAndroid
         virtual void Arc(float xc, float yc, float r, float a1, float a2) override;
         virtual void Close(void) override;
         virtual void Clear(void) override;
-        virtual void SetLineWidth(float width) override;
-        virtual void SetLineCap(PaCaLib::LineCap mode) override;
-        virtual void Fill(void) override;
         virtual void Stroke(void) override;
-        virtual void SetColour(float r, float g, float b, float a) override;
 
      protected:
         Draw & parent;
@@ -387,6 +384,8 @@ namespace PaCaAndroid
 
             AndroidAccess::JClassPtr        path;
             AndroidAccess::JFuncVoidPtr     arc;
+            AndroidAccess::JFuncVoidPtr     draw_line;
+            AndroidAccess::JFuncVoidPtr     draw_move;
 
         }; // struct PaCaAndroid::Target::Path
 
