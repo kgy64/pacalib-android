@@ -280,7 +280,7 @@ void Draw::SetLineCap(PaCaLib::LineCap cap)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- javaTarget->SetLineCap(cap);
+ javaDraw->SetLineCap(cap);
 }
 
 void Draw::Paint(void)
