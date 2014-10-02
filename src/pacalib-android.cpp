@@ -16,6 +16,7 @@ DEFINE_JAVA_CLASS(A, "com/android/ducktornavi/DucktorNaviGraphics");
 DEFINE_JAVA_CLASS(B, "com/android/ducktornavi/DucktorNaviGraphics$Draw");
 
 using namespace PaCaAndroid;
+using namespace AndroidAccess;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
  *                                                                                       *
@@ -46,14 +47,14 @@ JavaDrawPtr JavaIface::CreateJavaDraw(JNIEnv * env, JavaBitmapPtr & bitmap)
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
-    AndroidAccess::JClass("com/android/ducktornavi/DucktorNaviGraphics$Draw", obj, env),
-    draw_text(          AndroidAccess::JFuncFloat::Create(*this, "DrawText",        "(Ljava/lang/String;FFIFFF)F")),
-    set_border_size(    AndroidAccess::JFuncVoid::Create(*this,  "SetBorderSize",   "(F)V")),
-    set_border_colour(  AndroidAccess::JFuncVoid::Create(*this,  "SetBorderColour", "(I)V")),
-    set_colour(         AndroidAccess::JFuncVoid::Create(*this,  "SetColour",       "(I)V")),
-    set_line_cap(       AndroidAccess::JFuncVoid::Create(*this,  "SetLineCap",      "(I)V")),
-    set_line_width(     AndroidAccess::JFuncVoid::Create(*this,  "SetLineWidth",    "(F)V")),
-    draw_path(          AndroidAccess::JFuncVoid::Create(*this,  "DrawPath",        "(Landroid/graphics/Path;)V"))
+    JClass("com/android/ducktornavi/DucktorNaviGraphics$Draw", obj, env),
+    draw_text          (JFuncFloat::Create(*this, "DrawText",        "(Ljava/lang/String;FFIFFF)F")),
+    set_border_size    (JFuncVoid::Create (*this, "SetBorderSize",   "(F)V")),
+    set_border_colour  (JFuncVoid::Create (*this, "SetBorderColour", "(I)V")),
+    set_colour         (JFuncVoid::Create (*this, "SetColour",       "(I)V")),
+    set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",      "(I)V")),
+    set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",    "(F)V")),
+    draw_path          (JFuncVoid::Create (*this, "DrawPath",        "(Landroid/graphics/Path;)V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -67,7 +68,7 @@ void JavaDraw::DrawText(float x, float y, const char * text, int mode, float off
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- AndroidAccess::JavaString js(text, getEnv());
+ JavaString js(text, getEnv());
  (*draw_text)(getEnv(), js.get(), x, y, mode, offset, textsize, aspect); // LFFIFFF
 }
 
@@ -94,10 +95,22 @@ void JavaDraw::SetColour(float r, float g, float b, float a)
  (*set_colour)(getEnv(), colour.getInt());
 }
 
-void JavaDraw::SetLineCap(PaCaLib::LineCap mode)
+void JavaDraw::SetLineCap(PaCaLib::LineCap cap)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ int mode = 0;
+
+ switch (cap) {
+    case PaCaLib::LINE_CAP_ROUND:
+        mode = 0;
+    break;
+    case PaCaLib::LINE_CAP_SQUARE:
+        mode = 1;
+    break;
+ }
+
+ (*set_line_cap)(getEnv(), mode);
 }
 
 void JavaDraw::SetLineWidth(float width)
@@ -252,11 +265,11 @@ void Draw::SetLineWidth(float width)
  javaTarget->SetLineWidth(width);
 }
 
-void Draw::SetLineCap(PaCaLib::LineCap mode)
+void Draw::SetLineCap(PaCaLib::LineCap cap)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- javaTarget->SetLineCap(mode);
+ javaTarget->SetLineCap(cap);
 }
 
 void Draw::Paint(void)
@@ -367,10 +380,10 @@ void Path::Stroke(void)
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Path::MyJavaPath::MyJavaPath(JNIEnv * env):
-    path(AndroidAccess::JClass::Create("android/graphics/Path", nullptr, env)),
-    arc(AndroidAccess::JFuncVoid::Create(*path, "addArc", "(Landroid/graphics/RectF;FF)V")),
-    draw_line(AndroidAccess::JFuncVoid::Create(*path, "lineTo", "(FF)V")),
-    draw_move(AndroidAccess::JFuncVoid::Create(*path, "moveTo", "(FF)V"))
+    path(JClass::Create("android/graphics/Path", nullptr, env)),
+    arc(JFuncVoid::Create(*path, "addArc", "(Landroid/graphics/RectF;FF)V")),
+    draw_line(JFuncVoid::Create(*path, "lineTo", "(FF)V")),
+    draw_move(JFuncVoid::Create(*path, "moveTo", "(FF)V"))
 {
 }
 
@@ -381,9 +394,9 @@ Path::MyJavaPath::MyJavaPath(JNIEnv * env):
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 JavaIface::MyJavaClasses::MyJavaClasses(void):
-    graphics(AndroidAccess::JClass::Create("com/android/ducktornavi/DucktorNaviGraphics")),
-    create_bitmap(AndroidAccess::JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
-    create_target(AndroidAccess::JFuncObject::Create(*graphics, "CreateDraw", "(Landroid/graphics/Bitmap;)Lcom/android/ducktornavi/DucktorNaviGraphics$Draw;"))
+    graphics(JClass::Create("com/android/ducktornavi/DucktorNaviGraphics")),
+    create_bitmap(JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
+    create_target(JFuncObject::Create(*graphics, "CreateDraw", "(Landroid/graphics/Bitmap;)Lcom/android/ducktornavi/DucktorNaviGraphics$Draw;"))
 {
 }
 
