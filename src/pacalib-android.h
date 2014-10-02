@@ -86,6 +86,7 @@ namespace PaCaAndroid
         void SetColour(float r, float g, float b, float a);
         void SetLineCap(PaCaLib::LineCap mode);
         void SetLineWidth(float width);
+        void Stroke(jobject path);
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaDraw");
@@ -96,6 +97,7 @@ namespace PaCaAndroid
         AndroidAccess::JFuncVoidPtr  set_colour;
         AndroidAccess::JFuncVoidPtr  set_line_cap;
         AndroidAccess::JFuncVoidPtr  set_line_width;
+        AndroidAccess::JFuncVoidPtr  draw_path;
 
     }; // class PaCaAndroid::JavaDraw
 
@@ -272,9 +274,12 @@ namespace PaCaAndroid
     typedef PaCaLib::PathPtr PathPtr;
     typedef PaCaLib::DrawPtr DrawPtr;
 
+    class Draw;
+
     class Target: public PaCaLib::Target
     {
         friend class PaCaLib::Target;
+        friend class Draw;
 
         Target(int width, int height);
 
@@ -297,7 +302,6 @@ namespace PaCaAndroid
         virtual int GetWidth(void) const override;
         virtual int GetHeight(void) const override;
         virtual const void * GetPixelData(void) const override;
-        virtual int GetLogicalWidth(void) const override;
         virtual DrawPtr Draw(void) override;
 
      private:
@@ -344,6 +348,18 @@ namespace PaCaAndroid
             return GetJavaIface().CreateJavaDraw(AndroidAccess::getJNIEnv(), bitmap);
         }
 
+        inline int GetWidth(void) const
+        {
+            return target.GetWidth();
+        }
+
+        inline int GetHeight(void) const
+        {
+            return target.GetHeight();
+        }
+
+        void Stroke(jobject path);
+
         PaCaAndroid::Target & target;
 
         JavaDrawPtr javaTarget;
@@ -382,6 +398,11 @@ namespace PaCaAndroid
         {
             MyJavaPath(JNIEnv * env);
 
+            jobject getPath(void)
+            {
+                return path->getInstance();
+            }
+
             AndroidAccess::JClassPtr        path;
             AndroidAccess::JFuncVoidPtr     arc;
             AndroidAccess::JFuncVoidPtr     draw_line;
@@ -390,6 +411,10 @@ namespace PaCaAndroid
         }; // struct PaCaAndroid::Target::Path
 
         MyJavaPath path;
+
+        float width;
+
+        float height;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Path");

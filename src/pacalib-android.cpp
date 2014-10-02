@@ -52,7 +52,8 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     set_border_colour(  AndroidAccess::JFuncVoid::Create(*this,  "SetBorderColour", "(I)V")),
     set_colour(         AndroidAccess::JFuncVoid::Create(*this,  "SetColour",       "(I)V")),
     set_line_cap(       AndroidAccess::JFuncVoid::Create(*this,  "SetLineCap",      "(I)V")),
-    set_line_width(     AndroidAccess::JFuncVoid::Create(*this,  "SetLineWidth",    "(F)V"))
+    set_line_width(     AndroidAccess::JFuncVoid::Create(*this,  "SetLineWidth",    "(F)V")),
+    draw_path(          AndroidAccess::JFuncVoid::Create(*this,  "DrawPath",        "(Landroid/graphics/Path;)V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -103,6 +104,14 @@ void JavaDraw::SetLineWidth(float width)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ (*set_line_width)(getEnv(), width);
+}
+
+void JavaDraw::Stroke(jobject path)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ (*draw_path)(getEnv(), path);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -162,11 +171,6 @@ int Target::GetHeight(void) const
 }
 
 int Target::GetWidth(void) const
-{
- return mySurface.getWidth();
-}
-
-int Target::GetLogicalWidth(void) const
 {
  return mySurface.getWidth();
 }
@@ -273,6 +277,13 @@ void Draw::Fill(void)
 
 }
 
+void Draw::Stroke(jobject path)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ javaTarget->Stroke(path);
+}
+
 void Draw::Operator(PaCaLib::Oper op)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -292,7 +303,9 @@ PathPtr Draw::NewPath(void)
 
 Path::Path(Draw & parent):
     parent(parent),
-    path(parent.getEnv())
+    path(parent.getEnv()),
+    width(parent.GetWidth()),
+    height(parent.GetHeight())
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -306,12 +319,20 @@ void Path::Move(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ x = (float)(width/2) * (x + 1.0f);
+ y = (float)(height/2) * (y + 1.0f);
+
+ (*path.draw_move)(parent.getEnv(), x, y);
 }
 
 void Path::Line(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ x = (float)(width/2) * (x + 1.0f);
+ y = (float)(height/2) * (y + 1.0f);
+
+ (*path.draw_line)(parent.getEnv(), x, y);
 }
 
 void Path::Arc(float xc, float yc, float r, float a1, float a2)
@@ -336,6 +357,7 @@ void Path::Stroke(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ parent.Stroke(path.getPath());
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
