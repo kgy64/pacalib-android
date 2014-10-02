@@ -81,11 +81,17 @@ namespace PaCaAndroid
         }
 
         void DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
+        void SetBorderSize(float size);
+        void SetBorderColour(float r, float g, float b, float a);
+        void SetColour(float r, float g, float b, float a);
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaTarget");
 
         AndroidAccess::JFuncFloatPtr draw_text;
+        AndroidAccess::JFuncVoidPtr  set_border_size;
+        AndroidAccess::JFuncVoidPtr  set_border_colour;
+        AndroidAccess::JFuncVoidPtr  set_colour;
 
     }; // class PaCaAndroid::JavaTarget
 
@@ -233,26 +239,6 @@ namespace PaCaAndroid
             return myHeight;
         }
 
-        inline void SetColour(float r, float g, float b, float a)
-        {
-            drawColour.SetRGBA(r, g, b, a);
-        }
-
-        inline void SetColour(const PaCaLib::Colour & col)
-        {
-            drawColour.Set(col);
-        }
-
-        inline void SetTextOutlineColour(float r, float g, float b, float a = 1.0)
-        {
-            textOutlineColour.SetRGBA(r, g, b, a);
-        }
-
-        inline void SetTextOutline(float outline)
-        {
-            textOutlineWidth = outline;
-        }
-
      protected:
         static inline JavaIface & GetJavaIface(void)
         {
@@ -273,12 +259,6 @@ namespace PaCaAndroid
         int myHeight;
 
         JavaBitmapPtr bitmap;
-
-        JColour drawColour;
-
-        JColour textOutlineColour;
-
-        float textOutlineWidth;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Surface");

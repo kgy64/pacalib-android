@@ -47,7 +47,10 @@ JavaTargetPtr JavaIface::CreateTarget(JNIEnv * env, JavaBitmapPtr & bitmap)
 
 JavaTarget::JavaTarget(jobject obj, JNIEnv * env):
     AndroidAccess::JClass("com/android/ducktornavi/DucktorNaviGraphics$Target", obj, env),
-    draw_text(AndroidAccess::JFuncFloat::Create(*this, "DrawText", "(Ljava/lang/String;FFIFIFIFF)F"))
+    draw_text(AndroidAccess::JFuncFloat::Create(*this, "DrawText", "(Ljava/lang/String;FFIFFF)F")),
+    set_border_size(AndroidAccess::JFuncVoid::Create(*this, "SetBorderSize", "(F)V")),
+    set_border_colour(AndroidAccess::JFuncVoid::Create(*this, "SetBorderColour", "(I)V")),
+    set_colour(AndroidAccess::JFuncVoid::Create(*this, "SetColour", "(I)V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -62,7 +65,30 @@ void JavaTarget::DrawText(float x, float y, const char * text, int mode, float o
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  AndroidAccess::JavaString js(text, getEnv());
- (*draw_text)(getEnv(), js.get(), x, y, mode, offset, 0xffffffff, textsize, 0, 0.0f, aspect); // FFIFIFIFF
+ (*draw_text)(getEnv(), js.get(), x, y, mode, offset, textsize, aspect); // LFFIFFF
+}
+
+void JavaTarget::SetBorderSize(float size)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ (*set_border_size)(getEnv(), size);
+}
+
+void JavaTarget::SetBorderColour(float r, float g, float b, float a)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ JColour colour(r, g, b, a);
+ (*set_border_colour)(getEnv(), colour.getInt());
+}
+
+void JavaTarget::SetColour(float r, float g, float b, float a)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ JColour colour(r, g, b, a);
+ (*set_colour)(getEnv(), colour.getInt());
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -185,7 +211,7 @@ void Draw::SetColour(float r, float g, float b, float a)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
- target.getSurface().SetColour(r, g, b, a);
+ javaTarget->SetColour(r, g, b, a);
 }
 
 void Draw::Rectangle(float x, float y, float w, float h)
@@ -227,7 +253,7 @@ void Draw::SetTextOutlineColour(float r, float g, float b, float a)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutlineColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
- target.getSurface().SetTextOutlineColour(r, g, b, a);
+ javaTarget->SetBorderColour(r, g, b, a);
 }
 
 void Draw::SetTextOutline(float outline)
@@ -235,7 +261,7 @@ void Draw::SetTextOutline(float outline)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutline(" << outline << ")");
 
- target.getSurface().SetTextOutline(outline);
+ javaTarget->SetBorderSize(outline);
 }
 
 void Draw::Paint(void)
