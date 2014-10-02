@@ -81,6 +81,7 @@ namespace PaCaAndroid
         }
 
         void DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
+        void DrawArc(jobject path, float xc, float yc, float r, float a1, float a2);
         void SetBorderSize(float size);
         void SetBorderColour(float r, float g, float b, float a);
         void SetColour(float r, float g, float b, float a);
@@ -98,6 +99,7 @@ namespace PaCaAndroid
         AndroidAccess::JFuncVoidPtr  set_line_cap;
         AndroidAccess::JFuncVoidPtr  set_line_width;
         AndroidAccess::JFuncVoidPtr  draw_path;
+        AndroidAccess::JFuncVoidPtr  draw_arc;
 
     }; // class PaCaAndroid::JavaDraw
 
@@ -358,11 +360,12 @@ namespace PaCaAndroid
             return target.GetHeight();
         }
 
+        void DrawArc(jobject path, float xc, float yc, float r, float a1, float a2);
         void Stroke(jobject path);
 
         PaCaAndroid::Target & target;
 
-        JavaDrawPtr javaTarget;
+        JavaDrawPtr javaDraw;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Draw");
@@ -404,7 +407,6 @@ namespace PaCaAndroid
             }
 
             AndroidAccess::JClassPtr        path;
-            AndroidAccess::JFuncVoidPtr     arc;
             AndroidAccess::JFuncVoidPtr     draw_line;
             AndroidAccess::JFuncVoidPtr     draw_move;
 

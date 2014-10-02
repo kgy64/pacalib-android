@@ -53,7 +53,8 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     set_colour(         AndroidAccess::JFuncVoid::Create(*this,  "SetColour",       "(I)V")),
     set_line_cap(       AndroidAccess::JFuncVoid::Create(*this,  "SetLineCap",      "(I)V")),
     set_line_width(     AndroidAccess::JFuncVoid::Create(*this,  "SetLineWidth",    "(F)V")),
-    draw_path(          AndroidAccess::JFuncVoid::Create(*this,  "DrawPath",        "(Landroid/graphics/Path;)V"))
+    draw_path(          AndroidAccess::JFuncVoid::Create(*this,  "DrawPath",        "(Landroid/graphics/Path;)V")),
+    draw_arc(           AndroidAccess::JFuncVoid::Create(*this,  "DrawArc",         "(Landroid/graphics/Path;FFFFF)V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -69,6 +70,16 @@ void JavaDraw::DrawText(float x, float y, const char * text, int mode, float off
 
  AndroidAccess::JavaString js(text, getEnv());
  (*draw_text)(getEnv(), js.get(), x, y, mode, offset, textsize, aspect); // LFFIFFF
+}
+
+void JavaDraw::DrawArc(jobject path, float xc, float yc, float r, float a1, float a2)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ float start = a1 * (float)(180.0/M_PI);
+ float sweep = (a2-a1) * (float)(180.0/M_PI);
+
+ (*draw_arc)(getEnv(), path, xc, yc, r, start, sweep);
 }
 
 void JavaDraw::SetBorderSize(float size)
@@ -188,7 +199,7 @@ PaCaLib::DrawPtr Target::Draw(void)
 
 Draw::Draw(PaCaAndroid::Target & target):
     target(target),
-    javaTarget(CreateJavaDraw(target.getSurface().getBitmap()))
+    javaDraw(CreateJavaDraw(target.getSurface().getBitmap()))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -204,7 +215,7 @@ void Draw::SetColour(float r, float g, float b, float a)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
- javaTarget->SetColour(r, g, b, a);
+ javaDraw->SetColour(r, g, b, a);
 }
 
 float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect)
@@ -226,7 +237,7 @@ float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const cha
     break;
  }
 
- javaTarget->DrawText(x, y, text, JTextMode, offset, size, aspect);
+ javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect);
 }
 
 void Draw::SetTextOutlineColour(float r, float g, float b, float a)
@@ -234,7 +245,7 @@ void Draw::SetTextOutlineColour(float r, float g, float b, float a)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutlineColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
- javaTarget->SetBorderColour(r, g, b, a);
+ javaDraw->SetBorderColour(r, g, b, a);
 }
 
 void Draw::SetTextOutline(float outline)
@@ -242,21 +253,21 @@ void Draw::SetTextOutline(float outline)
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutline(" << outline << ")");
 
- javaTarget->SetBorderSize(outline);
+ javaDraw->SetBorderSize(outline);
 }
 
 void Draw::SetLineWidth(float width)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- javaTarget->SetLineWidth(width);
+ javaDraw->SetLineWidth(width);
 }
 
 void Draw::SetLineCap(PaCaLib::LineCap mode)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- javaTarget->SetLineCap(mode);
+ javaDraw->SetLineCap(mode);
 }
 
 void Draw::Paint(void)
@@ -281,7 +292,14 @@ void Draw::Stroke(jobject path)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- javaTarget->Stroke(path);
+ javaDraw->Stroke(path);
+}
+
+void Draw::DrawArc(jobject path, float xc, float yc, float r, float a1, float a2)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ javaDraw->DrawArc(path, xc, yc, r, a1, a2);
 }
 
 void Draw::Operator(PaCaLib::Oper op)
@@ -339,6 +357,7 @@ void Path::Arc(float xc, float yc, float r, float a1, float a2)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ parent.DrawArc(path.getPath(), xc, yc, r, a1, a2);
 }
 
 void Path::Close(void)
@@ -368,7 +387,6 @@ void Path::Stroke(void)
 
 Path::MyJavaPath::MyJavaPath(JNIEnv * env):
     path(AndroidAccess::JClass::Create("android/graphics/Path", nullptr, env)),
-    arc(AndroidAccess::JFuncVoid::Create(*path, "addArc", "(Landroid/graphics/RectF;FF)V")),
     draw_line(AndroidAccess::JFuncVoid::Create(*path, "lineTo", "(FF)V")),
     draw_move(AndroidAccess::JFuncVoid::Create(*path, "moveTo", "(FF)V"))
 {
