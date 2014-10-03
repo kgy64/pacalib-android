@@ -86,6 +86,7 @@ namespace PaCaAndroid
         void SetBorderColour(float r, float g, float b, float a);
         void SetColour(float r, float g, float b, float a);
         void SetLineCap(PaCaLib::LineCap cap);
+        void SetStyle(PaCaLib::Style style);
         void SetLineWidth(float width);
         void Stroke(jobject path);
 
@@ -97,6 +98,7 @@ namespace PaCaAndroid
         AndroidAccess::JFuncVoidPtr  set_border_colour;
         AndroidAccess::JFuncVoidPtr  set_colour;
         AndroidAccess::JFuncVoidPtr  set_line_cap;
+        AndroidAccess::JFuncVoidPtr  set_style;
         AndroidAccess::JFuncVoidPtr  set_line_width;
         AndroidAccess::JFuncVoidPtr  stroke_path;
         AndroidAccess::JFuncVoidPtr  draw_arc;
@@ -327,6 +329,7 @@ namespace PaCaAndroid
         virtual void SetTextOutlineColour(float r, float g, float b, float a = 1.0) override;
         virtual void SetTextOutline(float outline) override;
         virtual void SetLineCap(PaCaLib::LineCap cap) override;
+        virtual void SetStyle(PaCaLib::Style style) override;
         virtual void SetLineWidth(float width) override;
         virtual void Paint(void) override;
         virtual void Paint(float alpha) override;

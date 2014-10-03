@@ -53,6 +53,7 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     set_border_colour  (JFuncVoid::Create (*this, "SetBorderColour", "(I)V")),
     set_colour         (JFuncVoid::Create (*this, "SetColour",       "(I)V")),
     set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",      "(I)V")),
+    set_style          (JFuncVoid::Create (*this, "SetStyle",        "(I)V")),
     set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",    "(F)V")),
     stroke_path        (JFuncVoid::Create (*this, "StrokePath",      "(Landroid/graphics/Path;)V")),
     draw_arc           (JFuncVoid::Create (*this, "DrawArc",         "(Landroid/graphics/Path;FFFFF)V"))
@@ -122,6 +123,24 @@ void JavaDraw::SetLineCap(PaCaLib::LineCap cap)
  }
 
  (*set_line_cap)(getEnv(), mode);
+}
+
+void JavaDraw::SetStyle(PaCaLib::Style style)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ int mode = 0;
+
+ switch (style) {
+    case PaCaLib::STROKE:
+        mode = 0;
+    break;
+    case PaCaLib::FILL:
+        mode = 1;
+    break;
+ }
+
+ (*set_style)(getEnv(), mode);
 }
 
 void JavaDraw::SetLineWidth(float width)
@@ -281,6 +300,13 @@ void Draw::SetLineCap(PaCaLib::LineCap cap)
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  javaDraw->SetLineCap(cap);
+}
+
+void Draw::SetStyle(PaCaLib::Style style)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ javaDraw->SetStyle(style);
 }
 
 void Draw::Paint(void)
