@@ -85,7 +85,7 @@ namespace PaCaAndroid
         void SetBorderSize(float size);
         void SetBorderColour(float r, float g, float b, float a);
         void SetColour(float r, float g, float b, float a);
-        void SetLineCap(PaCaLib::LineCap mode);
+        void SetLineCap(PaCaLib::LineCap cap);
         void SetLineWidth(float width);
         void Stroke(jobject path);
 
@@ -326,7 +326,7 @@ namespace PaCaAndroid
         virtual float DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect = 1.0) override;
         virtual void SetTextOutlineColour(float r, float g, float b, float a = 1.0) override;
         virtual void SetTextOutline(float outline) override;
-        virtual void SetLineCap(PaCaLib::LineCap mode) override;
+        virtual void SetLineCap(PaCaLib::LineCap cap) override;
         virtual void SetLineWidth(float width) override;
         virtual void Paint(void) override;
         virtual void Paint(float alpha) override;
