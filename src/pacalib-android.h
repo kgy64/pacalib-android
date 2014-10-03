@@ -98,7 +98,7 @@ namespace PaCaAndroid
         AndroidAccess::JFuncVoidPtr  set_colour;
         AndroidAccess::JFuncVoidPtr  set_line_cap;
         AndroidAccess::JFuncVoidPtr  set_line_width;
-        AndroidAccess::JFuncVoidPtr  draw_path;
+        AndroidAccess::JFuncVoidPtr  stroke_path;
         AndroidAccess::JFuncVoidPtr  draw_arc;
 
     }; // class PaCaAndroid::JavaDraw

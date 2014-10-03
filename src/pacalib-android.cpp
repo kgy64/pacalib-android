@@ -53,7 +53,7 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     set_colour(         AndroidAccess::JFuncVoid::Create(*this,  "SetColour",       "(I)V")),
     set_line_cap(       AndroidAccess::JFuncVoid::Create(*this,  "SetLineCap",      "(I)V")),
     set_line_width(     AndroidAccess::JFuncVoid::Create(*this,  "SetLineWidth",    "(F)V")),
-    draw_path(          AndroidAccess::JFuncVoid::Create(*this,  "DrawPath",        "(Landroid/graphics/Path;)V")),
+    stroke_path(        AndroidAccess::JFuncVoid::Create(*this,  "StrokePath",      "(Landroid/graphics/Path;)V")),
     draw_arc(           AndroidAccess::JFuncVoid::Create(*this,  "DrawArc",         "(Landroid/graphics/Path;FFFFF)V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -122,7 +122,7 @@ void JavaDraw::Stroke(jobject path)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- (*draw_path)(getEnv(), path);
+ (*stroke_path)(getEnv(), path);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
