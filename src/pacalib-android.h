@@ -86,9 +86,8 @@ namespace PaCaAndroid
         void SetBorderColour(float r, float g, float b, float a);
         void SetColour(float r, float g, float b, float a);
         void SetLineCap(PaCaLib::LineCap cap);
-        void SetStyle(PaCaLib::Style style);
         void SetLineWidth(float width);
-        void Stroke(jobject path);
+        void DrawPath(jobject path, int mode);
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaDraw");
@@ -98,9 +97,8 @@ namespace PaCaAndroid
         AndroidAccess::JFuncVoidPtr  set_border_colour;
         AndroidAccess::JFuncVoidPtr  set_colour;
         AndroidAccess::JFuncVoidPtr  set_line_cap;
-        AndroidAccess::JFuncVoidPtr  set_style;
         AndroidAccess::JFuncVoidPtr  set_line_width;
-        AndroidAccess::JFuncVoidPtr  stroke_path;
+        AndroidAccess::JFuncVoidPtr  draw_path;
         AndroidAccess::JFuncVoidPtr  draw_arc;
 
     }; // class PaCaAndroid::JavaDraw
@@ -329,7 +327,6 @@ namespace PaCaAndroid
         virtual void SetTextOutlineColour(float r, float g, float b, float a = 1.0) override;
         virtual void SetTextOutline(float outline) override;
         virtual void SetLineCap(PaCaLib::LineCap cap) override;
-        virtual void SetStyle(PaCaLib::Style style) override;
         virtual void SetLineWidth(float width) override;
         virtual void Paint(void) override;
         virtual void Paint(float alpha) override;
@@ -364,7 +361,7 @@ namespace PaCaAndroid
         }
 
         void DrawArc(jobject path, float xc, float yc, float r, float a1, float a2);
-        void Stroke(jobject path);
+        void DrawPath(jobject path, int mode);
 
         PaCaAndroid::Target & target;
 
@@ -396,6 +393,7 @@ namespace PaCaAndroid
         virtual void Close(void) override;
         virtual void Clear(void) override;
         virtual void Stroke(void) override;
+        virtual void Fill(void) override;
 
      protected:
         Draw & parent;

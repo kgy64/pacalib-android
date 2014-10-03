@@ -53,9 +53,8 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     set_border_colour  (JFuncVoid::Create (*this, "SetBorderColour", "(I)V")),
     set_colour         (JFuncVoid::Create (*this, "SetColour",       "(I)V")),
     set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",      "(I)V")),
-    set_style          (JFuncVoid::Create (*this, "SetStyle",        "(I)V")),
     set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",    "(F)V")),
-    stroke_path        (JFuncVoid::Create (*this, "StrokePath",      "(Landroid/graphics/Path;)V")),
+    draw_path          (JFuncVoid::Create (*this, "DrawPath",        "(Landroid/graphics/Path;I)V")),
     draw_arc           (JFuncVoid::Create (*this, "DrawArc",         "(Landroid/graphics/Path;FFFFF)V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -125,24 +124,6 @@ void JavaDraw::SetLineCap(PaCaLib::LineCap cap)
  (*set_line_cap)(getEnv(), mode);
 }
 
-void JavaDraw::SetStyle(PaCaLib::Style style)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-
- int mode = 0;
-
- switch (style) {
-    case PaCaLib::STROKE:
-        mode = 0;
-    break;
-    case PaCaLib::FILL:
-        mode = 1;
-    break;
- }
-
- (*set_style)(getEnv(), mode);
-}
-
 void JavaDraw::SetLineWidth(float width)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -150,11 +131,11 @@ void JavaDraw::SetLineWidth(float width)
  (*set_line_width)(getEnv(), width);
 }
 
-void JavaDraw::Stroke(jobject path)
+void JavaDraw::DrawPath(jobject path, int mode)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- (*stroke_path)(getEnv(), path);
+ (*draw_path)(getEnv(), path, mode);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -302,36 +283,30 @@ void Draw::SetLineCap(PaCaLib::LineCap cap)
  javaDraw->SetLineCap(cap);
 }
 
-void Draw::SetStyle(PaCaLib::Style style)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-
- javaDraw->SetStyle(style);
-}
-
-void Draw::Paint(void)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "Paint()");
-}
-
-void Draw::Paint(float alpha)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "Paint(" << alpha << ")");
-}
-
 void Draw::Fill(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
 }
 
-void Draw::Stroke(jobject path)
+void Draw::Paint(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- javaDraw->Stroke(path);
+}
+
+void Draw::Paint(float alpha)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+ SYS_DEBUG(DL_INFO1, "Paint(" << alpha << ")");
+
+}
+
+void Draw::DrawPath(jobject path, int mode)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ javaDraw->DrawPath(path, mode);
 }
 
 void Draw::DrawArc(jobject path, float xc, float yc, float r, float a1, float a2)
@@ -415,7 +390,14 @@ void Path::Stroke(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- parent.Stroke(path.getPath());
+ parent.DrawPath(path.getPath(), 0);
+}
+
+void Path::Fill(void)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ parent.DrawPath(path.getPath(), 1);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
