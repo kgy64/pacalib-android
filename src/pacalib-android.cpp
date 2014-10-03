@@ -397,6 +397,7 @@ void Path::Close(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ (*path.close)(parent.getEnv());
 }
 
 void Path::Clear(void)
@@ -428,7 +429,8 @@ void Path::Fill(void)
 Path::MyJavaPath::MyJavaPath(JNIEnv * env):
     path(JClass::Create("android/graphics/Path", nullptr, env)),
     draw_line   (JFuncVoid::Create  (*path, "lineTo", "(FF)V")),
-    draw_move   (JFuncVoid::Create  (*path, "moveTo", "(FF)V"))
+    draw_move   (JFuncVoid::Create  (*path, "moveTo", "(FF)V")),
+    close       (JFuncVoid::Create  (*path, "close", "()V"))
 {
 }
 

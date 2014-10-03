@@ -413,6 +413,7 @@ namespace PaCaAndroid
             AndroidAccess::JClassPtr        path;
             AndroidAccess::JFuncVoidPtr     draw_line;
             AndroidAccess::JFuncVoidPtr     draw_move;
+            AndroidAccess::JFuncVoidPtr     close;
 
         }; // struct PaCaAndroid::Target::Path
 
