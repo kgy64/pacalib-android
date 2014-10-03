@@ -55,7 +55,8 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",      "(I)V")),
     set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",    "(F)V")),
     draw_path          (JFuncVoid::Create (*this, "DrawPath",        "(Landroid/graphics/Path;I)V")),
-    draw_arc           (JFuncVoid::Create (*this, "DrawArc",         "(Landroid/graphics/Path;FFFFF)V"))
+    draw_arc           (JFuncVoid::Create (*this, "DrawArc",         "(Landroid/graphics/Path;FFFFF)V")),
+    draw_fill          (JFuncVoid::Create (*this, "DrawFill",        "()V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -139,6 +140,13 @@ void JavaDraw::DrawPath(jobject path, int mode)
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  (*draw_path)(getEnv(), path, mode);
+}
+
+void JavaDraw::DrawFill(void)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ (*draw_fill)(getEnv());
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -290,6 +298,7 @@ void Draw::Fill(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ javaDraw->DrawFill();
 }
 
 void Draw::Paint(void)
@@ -310,6 +319,13 @@ void Draw::DrawPath(jobject path, int mode)
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  javaDraw->DrawPath(path, mode);
+}
+
+void Draw::DrawFill(void)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ javaDraw->DrawFill();
 }
 
 void Draw::DrawArc(jobject path, float xc, float yc, float r, float a1, float a2)

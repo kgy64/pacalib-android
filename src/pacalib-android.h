@@ -88,6 +88,7 @@ namespace PaCaAndroid
         void SetLineCap(PaCaLib::LineCap cap);
         void SetLineWidth(float width);
         void DrawPath(jobject path, int mode);
+        void DrawFill(void);
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::JavaDraw");
@@ -100,6 +101,7 @@ namespace PaCaAndroid
         AndroidAccess::JFuncVoidPtr  set_line_width;
         AndroidAccess::JFuncVoidPtr  draw_path;
         AndroidAccess::JFuncVoidPtr  draw_arc;
+        AndroidAccess::JFuncVoidPtr  draw_fill;
 
     }; // class PaCaAndroid::JavaDraw
 
@@ -362,6 +364,7 @@ namespace PaCaAndroid
 
         void DrawArc(jobject path, float xc, float yc, float r, float a1, float a2);
         void DrawPath(jobject path, int mode);
+        void DrawFill(void);
 
         PaCaAndroid::Target & target;
 
