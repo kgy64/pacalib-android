@@ -120,10 +120,10 @@ void JavaDraw::SetLineCap(PaCaLib::LineCap cap)
     case PaCaLib::LINE_CAP_NONE:
         mode = 0;
     break;
-    case PaCaLib::LINE_CAP_ROUND:
+    case PaCaLib::LINE_CAP_SQUARE:
         mode = 1;
     break;
-    case PaCaLib::LINE_CAP_SQUARE:
+    case PaCaLib::LINE_CAP_ROUND:
         mode = 2;
     break;
  }
