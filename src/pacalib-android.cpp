@@ -37,7 +37,10 @@ JavaDrawPtr JavaIface::CreateJavaDraw(JNIEnv * env, JavaBitmapPtr & bitmap)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- return JavaDraw::Create((*classes.create_target)(env, bitmap->getObject()), env);
+ auto instance = (*classes.create_draw)(env, bitmap->getObject());
+ JavaDrawPtr p = JavaDraw::Create(instance, env);
+ env->DeleteLocalRef(instance);
+ return p;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -223,7 +226,8 @@ PaCaLib::DrawPtr Target::Draw(void)
 
 Draw::Draw(PaCaAndroid::Target & target):
     target(target),
-    javaDraw(CreateJavaDraw(target.getSurface().getBitmap()))
+    javaDraw(CreateJavaDraw(target.getSurface().getBitmap())),
+    myEnv(AndroidAccess::getJNIEnv())   // Must use the current environment
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -443,7 +447,7 @@ Path::MyJavaPath::MyJavaPath(JNIEnv * env):
 JavaIface::MyJavaClasses::MyJavaClasses(void):
     graphics(JClass::Create("com/android/ducktornavi/DucktorNaviGraphics")),
     create_bitmap(JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
-    create_target(JFuncObject::Create(*graphics, "CreateDraw", "(Landroid/graphics/Bitmap;)Lcom/android/ducktornavi/DucktorNaviGraphics$Draw;"))
+    create_draw(JFuncObject::Create(*graphics, "CreateDraw", "(Landroid/graphics/Bitmap;)Lcom/android/ducktornavi/DucktorNaviGraphics$Draw;"))
 {
 }
 

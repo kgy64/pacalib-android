@@ -139,7 +139,7 @@ namespace PaCaAndroid
 
             AndroidAccess::JClassPtr        graphics;
             AndroidAccess::JFuncObjectPtr   create_bitmap;
-            AndroidAccess::JFuncObjectPtr   create_target;
+            AndroidAccess::JFuncObjectPtr   create_draw;
             AndroidAccess::JFuncFloatPtr    draw_text;
 
         }; // struct MyJavaClasses
@@ -343,7 +343,7 @@ namespace PaCaAndroid
 
         inline JNIEnv * getEnv(void)
         {
-            return target.getSurface().getEnv();
+            return myEnv;
         }
 
         inline JavaDrawPtr CreateJavaDraw(JavaBitmapPtr bitmap)
@@ -372,6 +372,8 @@ namespace PaCaAndroid
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Draw");
+
+        JNIEnv * myEnv;
 
     }; // class PaCaAndroid::Draw
 
