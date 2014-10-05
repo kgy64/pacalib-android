@@ -51,14 +51,15 @@ JavaDrawPtr JavaIface::CreateJavaDraw(JNIEnv * env, JavaBitmapPtr & bitmap)
 
 JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     JClass("com/android/ducktornavi/DucktorNaviGraphics$Draw", obj, env),
-    draw_text          (JFuncFloat::Create(*this, "DrawText",        "(Ljava/lang/String;FFIFFF)F")),
+    set_scale          (JFuncVoid::Create (*this, "SetScale",        "(FF)V")),
     set_border_size    (JFuncVoid::Create (*this, "SetBorderSize",   "(F)V")),
     set_border_colour  (JFuncVoid::Create (*this, "SetBorderColour", "(I)V")),
     set_colour         (JFuncVoid::Create (*this, "SetColour",       "(I)V")),
     set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",      "(I)V")),
     set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",    "(F)V")),
+    draw_text          (JFuncFloat::Create(*this, "DrawText",        "(Ljava/lang/String;FFIFFF)F")),
     draw_path          (JFuncVoid::Create (*this, "DrawPath",        "(Landroid/graphics/Path;I)V")),
-    draw_arc           (JFuncVoid::Create (*this, "DrawArc",         "(Landroid/graphics/Path;FFFFF)V")),
+    draw_arc           (JFuncVoid::Create (*this, "DrawArc",         "(Landroid/graphics/Path;FFFFFF)V")),
     draw_fill          (JFuncVoid::Create (*this, "DrawFill",        "()V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -69,22 +70,19 @@ JavaDraw::~JavaDraw()
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
-void JavaDraw::DrawText(float x, float y, const char * text, int mode, float offset, float textsize, float aspect)
+float JavaDraw::DrawText(float x, float y, const char * text, int mode, float offset, float textsize, float aspect)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  JavaString js(text, getEnv());
- (*draw_text)(getEnv(), js.get(), x, y, mode, offset, textsize, aspect); // LFFIFFF
+ return (*draw_text)(getEnv(), js.get(), x, y, mode, offset, textsize, aspect); // LFFIFFF
 }
 
-void JavaDraw::DrawArc(jobject path, float xc, float yc, float r, float a1, float a2)
+void JavaDraw::DrawArc(jobject path, float left, float top, float right, float bottom, float start, float sweep)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- float start = a1 * (float)(180.0/M_PI);
- float sweep = (a2-a1) * (float)(180.0/M_PI);
-
- (*draw_arc)(getEnv(), path, xc, yc, r, start, sweep);
+ (*draw_arc)(getEnv(), path, left, top, right, bottom, start, sweep);
 }
 
 void JavaDraw::SetBorderSize(float size)
@@ -150,6 +148,13 @@ void JavaDraw::DrawFill(void)
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  (*draw_fill)(getEnv());
+}
+
+void JavaDraw::Scale(float sw, float sh)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ (*set_scale)(getEnv(), sw, sh);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
@@ -232,10 +237,12 @@ Draw::Draw(PaCaAndroid::Target & target):
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
-void Draw::Scale(float w, float h)
+void Draw::Scale(float sw, float sh)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Scale(" << w << ", " << h << ")");
+
+ javaDraw->Scale(sw, sh);
 }
 
 void Draw::SetColour(float r, float g, float b, float a)
@@ -265,7 +272,7 @@ float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const cha
     break;
  }
 
- javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect);
+ return javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect);
 }
 
 void Draw::SetTextOutlineColour(float r, float g, float b, float a)
@@ -298,24 +305,11 @@ void Draw::SetLineCap(PaCaLib::LineCap cap)
  javaDraw->SetLineCap(cap);
 }
 
-void Draw::Fill(void)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-
- javaDraw->DrawFill();
-}
-
 void Draw::Paint(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
-}
-
-void Draw::Paint(float alpha)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "Paint(" << alpha << ")");
-
+ javaDraw->DrawFill();
 }
 
 void Draw::DrawPath(jobject path, int mode)
@@ -325,24 +319,11 @@ void Draw::DrawPath(jobject path, int mode)
  javaDraw->DrawPath(path, mode);
 }
 
-void Draw::DrawFill(void)
+void Draw::DrawArc(jobject path, float left, float top, float right, float bottom, float start, float sweep)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- javaDraw->DrawFill();
-}
-
-void Draw::DrawArc(jobject path, float xc, float yc, float r, float a1, float a2)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-
- javaDraw->DrawArc(path, xc, yc, r, a1, a2);
-}
-
-void Draw::Operator(PaCaLib::Oper op)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "Operator(" << (int)op << ")");
+ javaDraw->DrawArc(path, left, top, right, bottom, start, sweep);
 }
 
 PathPtr Draw::NewPath(void)
@@ -360,7 +341,9 @@ Path::Path(Draw & parent):
     parent(parent),
     path(parent.getEnv()),
     width(parent.GetWidth()),
-    height(parent.GetHeight())
+    half_width((float)width * 0.5f),
+    height(parent.GetHeight()),
+    half_height((float)height * 0.5f)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -374,27 +357,32 @@ void Path::Move(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- x = (float)(width/2) * (x + 1.0f);
- y = (float)(height/2) * (y + 1.0f);
-
- (*path.draw_move)(parent.getEnv(), x, y);
+ (*path.draw_move)(parent.getEnv(), half_width  * (x + 1.0f), half_height * (y + 1.0f));
 }
 
 void Path::Line(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- x = (float)(width/2) * (x + 1.0f);
- y = (float)(height/2) * (y + 1.0f);
-
- (*path.draw_line)(parent.getEnv(), x, y);
+ (*path.draw_line)(parent.getEnv(), half_width  * (x + 1.0f), half_height * (y + 1.0f));
 }
 
 void Path::Arc(float xc, float yc, float r, float a1, float a2)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- parent.DrawArc(path.getPath(), xc, yc, r, a1, a2);
+ xc += 1.0f;
+ yc += 1.0f;
+
+ float left = half_width * (xc - r);
+ float top = half_height * (yc - r);
+ float right = half_width * (xc + r);
+ float bottom = half_height * (yc + r);
+
+ float start = a1 * (float)(180.0/M_PI);
+ float sweep = (a2-a1) * (float)(180.0/M_PI);
+
+ parent.DrawArc(path.getPath(), left, top, right, bottom, start, sweep);
 }
 
 void Path::Close(void)
