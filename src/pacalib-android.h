@@ -11,6 +11,7 @@
 #ifndef __SRC_PACALIB_ANDROID_H_INCLUDED__
 #define __SRC_PACALIB_ANDROID_H_INCLUDED__
 
+#include <glesly/format.h>
 #include <pacalib/pacalib.h>
 #include <my-android/access/access-base.h>
 #include <android/native_window_jni.h>
@@ -130,7 +131,7 @@ namespace PaCaAndroid
             return *myself;
         }
 
-        JavaBitmapPtr CreateJavaBitmap(JNIEnv * env, int32_t width, int32_t height);
+        JavaBitmapPtr CreateJavaBitmap(JNIEnv * env, int32_t width, int32_t height, Glesly::PixelFormat format);
         JavaDrawPtr CreateJavaDraw(JNIEnv * env, JavaBitmapPtr & bitmap);
         void SetColour(JNIEnv * env, float r, float g, float b, float a);
 
@@ -213,7 +214,7 @@ namespace PaCaAndroid
     class Surface
     {
      public:
-        Surface(int width, int height);
+        Surface(int width, int height, Glesly::PixelFormat format);
         VIRTUAL_IF_DEBUG ~Surface();
 
         inline JNIEnv * getEnv(void)
@@ -257,11 +258,11 @@ namespace PaCaAndroid
             return PaCaAndroid::JavaIface::Get();
         }
 
-        inline JavaBitmapPtr CreateJavaBitmap(int width, int height)
+        inline JavaBitmapPtr CreateJavaBitmap(int width, int height, Glesly::PixelFormat format)
         {
             SYS_DEBUG_MEMBER(DM_PACALIB);
             SYS_DEBUG(DL_INFO2, "Creating bitmap " << width << "x" << height);
-            return GetJavaIface().CreateJavaBitmap(getEnv(), width, height);
+            return GetJavaIface().CreateJavaBitmap(getEnv(), width, height, format);
         }
 
         JNIEnv * myJNIEnv;
@@ -287,7 +288,7 @@ namespace PaCaAndroid
         friend class PaCaLib::Target;
         friend class Draw;
 
-        Target(int width, int height);
+        Target(int width, int height, Glesly::PixelFormat format);
 
         Surface mySurface;
 

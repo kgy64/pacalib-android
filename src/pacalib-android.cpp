@@ -26,11 +26,24 @@ using namespace AndroidAccess;
 
 PaCaAndroid::JavaIface * PaCaAndroid::JavaIface::myself;
 
-JavaBitmapPtr JavaIface::CreateJavaBitmap(JNIEnv * env, int32_t width, int32_t height)
+JavaBitmapPtr JavaIface::CreateJavaBitmap(JNIEnv * env, int32_t width, int32_t height, Glesly::PixelFormat format)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- return JavaBitmap::Create((*classes.create_bitmap)(env, width, height), env);
+ int mode = 0;
+
+ switch (format) {
+    case Glesly::FORMAT_RGBA_8888:
+        mode = 1;
+    break;
+    case Glesly::FORMAT_RGB_565:
+        mode = 2;
+    break;
+    default:
+    break;
+ }
+
+ return JavaBitmap::Create((*classes.create_bitmap)(env, width, height, mode), env);
 }
 
 JavaDrawPtr JavaIface::CreateJavaDraw(JNIEnv * env, JavaBitmapPtr & bitmap)
@@ -163,11 +176,11 @@ void JavaDraw::Scale(float sw, float sh)
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Surface::Surface(int width, int height):
+Surface::Surface(int width, int height, Glesly::PixelFormat format):
     myJNIEnv(AndroidAccess::getJNIEnv()),
     myWidth(width),
     myHeight(height),
-    bitmap(CreateJavaBitmap(width, height))
+    bitmap(CreateJavaBitmap(width, height, format))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Created surface: " << myWidth << "x" << myHeight);
@@ -185,13 +198,13 @@ Surface::~Surface()
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-PaCaLib::TargetPtr PaCaLib::Target::Create(int width, int height)
+PaCaLib::TargetPtr PaCaLib::Target::Create(int width, int height, Glesly::PixelFormat format)
 {
- return PaCaLib::TargetPtr(new PaCaAndroid::Target(width, height));
+ return PaCaLib::TargetPtr(new PaCaAndroid::Target(width, height, format));
 }
 
-Target::Target(int width, int height):
-    mySurface(width, height)
+Target::Target(int width, int height, Glesly::PixelFormat format):
+    mySurface(width, height, format)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Created target: " << width << "x" << height);
@@ -434,7 +447,7 @@ Path::MyJavaPath::MyJavaPath(JNIEnv * env):
 
 JavaIface::MyJavaClasses::MyJavaClasses(void):
     graphics(JClass::Create("com/android/ducktornavi/DucktorNaviGraphics")),
-    create_bitmap(JFuncObject::Create(*graphics, "CreateBitmap", "(II)Landroid/graphics/Bitmap;")),
+    create_bitmap(JFuncObject::Create(*graphics, "CreateBitmap", "(III)Landroid/graphics/Bitmap;")),
     create_draw(JFuncObject::Create(*graphics, "CreateDraw", "(Landroid/graphics/Bitmap;)Lcom/android/ducktornavi/DucktorNaviGraphics$Draw;"))
 {
 }
