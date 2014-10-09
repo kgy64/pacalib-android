@@ -177,9 +177,9 @@ namespace PaCaAndroid
         union {
             struct {
 #if _BYTE_ORDER == _LITTLE_ENDIAN
-                uint8_t     r;
-                uint8_t     g;
                 uint8_t     b;
+                uint8_t     g;
+                uint8_t     r;
                 uint8_t     a;
 #elif _BYTE_ORDER == _BIG_ENDIAN
     #error Big endian is not implemented yet
