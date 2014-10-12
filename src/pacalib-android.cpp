@@ -33,13 +33,14 @@ JavaBitmapPtr JavaIface::CreateJavaBitmap(JNIEnv * env, int32_t width, int32_t h
  int mode = 0;
 
  switch (format) {
-    case Glesly::FORMAT_RGBA_8888:
+    case Glesly::FORMAT_BGRA_8888:
         mode = 1;
     break;
     case Glesly::FORMAT_RGB_565:
         mode = 2;
     break;
     default:
+        ASSERT(false, "pixel format " << format << " is not supported");
     break;
  }
 
@@ -180,6 +181,7 @@ Surface::Surface(int width, int height, Glesly::PixelFormat format):
     myJNIEnv(AndroidAccess::getJNIEnv()),
     myWidth(width),
     myHeight(height),
+    myFormat(format),
     bitmap(CreateJavaBitmap(width, height, format))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -200,6 +202,11 @@ Surface::~Surface()
 
 PaCaLib::TargetPtr PaCaLib::Target::Create(int width, int height, Glesly::PixelFormat format)
 {
+ if (format == Glesly::FORMAT_DEFAULT) {
+    // Unfortunately, RGBA seems not handled in Android
+    format = Glesly::FORMAT_BGRA_8888;
+ }
+
  return PaCaLib::TargetPtr(new PaCaAndroid::Target(width, height, format));
 }
 
@@ -214,6 +221,11 @@ Target::~Target()
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "Deleted target: " << getSurface().getWidth() << "x" << getSurface().getHeight());
+}
+
+Glesly::PixelFormat Target::GetPixelFormat(void) const
+{
+ return mySurface.getFormat();
 }
 
 const void * Target::GetPixelData(void) const
@@ -253,7 +265,7 @@ Draw::Draw(PaCaAndroid::Target & target):
 void Draw::Scale(float sw, float sh)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "Scale(" << w << ", " << h << ")");
+ SYS_DEBUG(DL_INFO1, "Scale(" << sw << ", " << sh << ")");
 
  javaDraw->Scale(sw, sh);
 }

@@ -252,6 +252,11 @@ namespace PaCaAndroid
             return myHeight;
         }
 
+        inline Glesly::PixelFormat getFormat(void) const
+        {
+            return myFormat;
+        }
+
      protected:
         static inline JavaIface & GetJavaIface(void)
         {
@@ -270,6 +275,8 @@ namespace PaCaAndroid
         int myWidth;
 
         int myHeight;
+
+        Glesly::PixelFormat myFormat;
 
         JavaBitmapPtr bitmap;
 
@@ -309,6 +316,7 @@ namespace PaCaAndroid
         virtual int GetWidth(void) const override;
         virtual int GetHeight(void) const override;
         virtual const void * GetPixelData(void) const override;
+        virtual Glesly::PixelFormat GetPixelFormat(void) const override;
         virtual DrawPtr Draw(void) override;
 
      private:
