@@ -204,6 +204,7 @@ namespace PaCaAndroid
             SetRGBA(col.r, col.g, col.b, col.a);
         }
 
+        /// Return the integer representation used in Java
         inline uint32_t getInt(void) const
         {
             return int_val;
