@@ -65,16 +65,17 @@ JavaDrawPtr JavaIface::CreateJavaDraw(JNIEnv * env, JavaBitmapPtr & bitmap)
 
 JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     JClass("com/android/ducktornavi/DucktorNaviGraphics$Draw", obj, env),
-    set_scale          (JFuncVoid::Create (*this, "SetScale",        "(FF)V")),
-    set_border_size    (JFuncVoid::Create (*this, "SetBorderSize",   "(F)V")),
-    set_border_colour  (JFuncVoid::Create (*this, "SetBorderColour", "(I)V")),
-    set_colour         (JFuncVoid::Create (*this, "SetColour",       "(I)V")),
-    set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",      "(I)V")),
-    set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",    "(F)V")),
-    draw_text          (JFuncFloat::Create(*this, "DrawText",        "(Ljava/lang/String;FFIFFF)F")),
-    draw_path          (JFuncVoid::Create (*this, "DrawPath",        "(Landroid/graphics/Path;I)V")),
-    draw_arc           (JFuncVoid::Create (*this, "DrawArc",         "(Landroid/graphics/Path;FFFFFF)V")),
-    draw_fill          (JFuncVoid::Create (*this, "DrawFill",        "()V"))
+    set_scale          (JFuncVoid::Create (*this, "SetScale",           "(FF)V")),
+    set_border_size    (JFuncVoid::Create (*this, "SetBorderSize",      "(F)V")),
+    set_border_colour  (JFuncVoid::Create (*this, "SetBorderColour",    "(I)V")),
+    set_colour         (JFuncVoid::Create (*this, "SetColour",          "(I)V")),
+    set_colour_compose (JFuncVoid::Create (*this, "SetColorBlendMode",  "(I)V")),
+    set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",         "(I)V")),
+    set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",       "(F)V")),
+    draw_text          (JFuncFloat::Create(*this, "DrawText",           "(Ljava/lang/String;FFIFFF)F")),
+    draw_path          (JFuncVoid::Create (*this, "DrawPath",           "(Landroid/graphics/Path;I)V")),
+    draw_arc           (JFuncVoid::Create (*this, "DrawArc",            "(Landroid/graphics/Path;FFFFFF)V")),
+    draw_fill          (JFuncVoid::Create (*this, "DrawFill",           "()V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -120,6 +121,34 @@ void JavaDraw::SetColour(float r, float g, float b, float a)
 
  JColour colour(r, g, b, a);
  (*set_colour)(getEnv(), colour.getInt());
+}
+
+void JavaDraw::SetColourCompose(PaCaLib::ColourCompose mode)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ int cmp = 0;
+
+ switch (mode) {
+    case PaCaLib::COLOUR_COMPOSE_DEFAULT:
+        cmp = 0;
+    break;
+    case PaCaLib::COLOUR_COMPOSE_ADD:
+        cmp = 1;
+    break;
+    case PaCaLib::COLOUR_COMPOSE_SUBTRACT:
+        cmp = 2;
+    break;
+    case PaCaLib::COLOUR_COMPOSE_OVERWRITE:
+        cmp = 3;
+    break;
+    default:
+        DEBUG_OUT("Using unknown colour composing mode: " << mode);
+        return;
+    break;
+ }
+
+ (*set_colour_compose)(getEnv(), cmp);
 }
 
 void JavaDraw::SetLineCap(PaCaLib::LineCap cap)
@@ -276,6 +305,14 @@ void Draw::SetColour(float r, float g, float b, float a)
  SYS_DEBUG(DL_INFO1, "SetColour(" << r << ", " << g << ", " << b << ", " << a << ")");
 
  javaDraw->SetColour(r, g, b, a);
+}
+
+void Draw::SetColourCompose(PaCaLib::ColourCompose mode)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+ SYS_DEBUG(DL_INFO1, "SetColourCompose(" << mode << ")");
+
+ javaDraw->SetColourCompose(mode);
 }
 
 float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect)
