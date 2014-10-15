@@ -75,6 +75,7 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     draw_text          (JFuncFloat::Create(*this, "DrawText",           "(Ljava/lang/String;FFIFFF)F")),
     draw_path          (JFuncVoid::Create (*this, "DrawPath",           "(Landroid/graphics/Path;I)V")),
     draw_arc           (JFuncVoid::Create (*this, "DrawArc",            "(Landroid/graphics/Path;FFFFFF)V")),
+    draw_bezier        (JFuncVoid::Create (*this, "DrawBezier",         "(Landroid/graphics/Path;FFFFFF)V")),
     draw_fill          (JFuncVoid::Create (*this, "DrawFill",           "()V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -98,6 +99,13 @@ void JavaDraw::DrawArc(jobject path, float left, float top, float right, float b
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  (*draw_arc)(getEnv(), path, left, top, right, bottom, start, sweep);
+}
+
+void JavaDraw::DrawBezier(jobject path, float x1, float y1, float x2, float y2, float x3, float y3)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ (*draw_bezier)(getEnv(), path, x1, y1, x2, y2, x3, y3);
 }
 
 void JavaDraw::SetBorderSize(float size)
@@ -388,6 +396,13 @@ void Draw::DrawArc(jobject path, float left, float top, float right, float botto
  javaDraw->DrawArc(path, left, top, right, bottom, start, sweep);
 }
 
+void Draw::DrawBezier(jobject path, float x1, float y1, float x2, float y2, float x3, float y3)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ javaDraw->DrawBezier(path, x1, y1, x2, y2, x3, y3);
+}
+
 PathPtr Draw::NewPath(void)
 {
  return PathPtr(new Path(*this));
@@ -405,7 +420,12 @@ Path::Path(Draw & parent):
     width(parent.GetWidth()),
     half_width((float)width * 0.5f),
     height(parent.GetHeight()),
-    half_height((float)height * 0.5f)
+    half_height((float)height * 0.5f),
+    is_bezier(false),
+    currentX(0.0f),
+    currentY(0.0f),
+    bezier_dx(0.0f),
+    bezier_dy(0.0f)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
@@ -420,6 +440,9 @@ void Path::Move(float x, float y)
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  (*path.draw_move)(parent.getEnv(), half_width  * (x + 1.0f), half_height * (y + 1.0f));
+
+ currentX = x;
+ currentY = y;
 }
 
 void Path::Line(float x, float y)
@@ -427,6 +450,9 @@ void Path::Line(float x, float y)
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  (*path.draw_line)(parent.getEnv(), half_width  * (x + 1.0f), half_height * (y + 1.0f));
+
+ currentX = x;
+ currentY = y;
 }
 
 void Path::Arc(float xc, float yc, float r, float a1, float a2)
@@ -447,6 +473,21 @@ void Path::Arc(float xc, float yc, float r, float a1, float a2)
  parent.DrawArc(path.getPath(), left, top, right, bottom, start, sweep);
 }
 
+void Path::Bezier(float x, float y, float dx, float dy)
+{
+ SYS_DEBUG_MEMBER(DM_PACALIB);
+
+ if (is_bezier) {
+    parent.DrawBezier(path.getPath(), currentX + bezier_dx, currentY + bezier_dy, x - dx, y - dy, x, y);
+ } else {
+    Move(x, y);
+    is_bezier = true;
+ }
+
+ bezier_dx = dx;
+ bezier_dy = dy;
+}
+
 void Path::Close(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -458,6 +499,7 @@ void Path::Clear(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ is_bezier = false;
 }
 
 void Path::Stroke(void)

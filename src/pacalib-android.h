@@ -83,6 +83,7 @@ namespace PaCaAndroid
 
         float DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
         void DrawArc(jobject path, float left, float top, float right, float bottom, float start, float sweep);
+        void DrawBezier(jobject path, float x1, float y1, float x2, float y2, float x3, float y3);
         void SetBorderSize(float size);
         void SetBorderColour(float r, float g, float b, float a);
         void SetColour(float r, float g, float b, float a);
@@ -106,6 +107,7 @@ namespace PaCaAndroid
         AndroidAccess::JFuncFloatPtr draw_text;
         AndroidAccess::JFuncVoidPtr  draw_path;
         AndroidAccess::JFuncVoidPtr  draw_arc;
+        AndroidAccess::JFuncVoidPtr  draw_bezier;
         AndroidAccess::JFuncVoidPtr  draw_fill;
 
     }; // class PaCaAndroid::JavaDraw
@@ -369,6 +371,7 @@ namespace PaCaAndroid
         }
 
         void DrawArc(jobject path, float left, float top, float right, float bottom, float start, float sweep);
+        void DrawBezier(jobject path, float x1, float y1, float x2, float y2, float x3, float y3);
         void DrawPath(jobject path, int mode);
         void DrawFill(void);
 
@@ -407,6 +410,7 @@ namespace PaCaAndroid
         virtual void Move(float x, float y) override;
         virtual void Line(float x, float y) override;
         virtual void Arc(float xc, float yc, float r, float a1, float a2) override;
+        virtual void Bezier(float x, float y, float dx, float dy) override;
         virtual void Close(void) override;
         virtual void Clear(void) override;
         virtual void Stroke(void) override;
@@ -440,6 +444,16 @@ namespace PaCaAndroid
         int height;
 
         float half_height;
+
+        bool is_bezier;
+
+        float currentX;
+
+        float currentY;
+
+        float bezier_dx;
+
+        float bezier_dy;
 
      private:
         SYS_DEFINE_CLASS_NAME("PaCaAndroid::Path");
