@@ -75,7 +75,6 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     draw_text          (JFuncFloat::Create(*this, "DrawText",           "(Ljava/lang/String;FFIFFF)F")),
     draw_path          (JFuncVoid::Create (*this, "DrawPath",           "(Landroid/graphics/Path;I)V")),
     draw_arc           (JFuncVoid::Create (*this, "DrawArc",            "(Landroid/graphics/Path;FFFFFF)V")),
-    draw_bezier        (JFuncVoid::Create (*this, "DrawBezier",         "(Landroid/graphics/Path;FFFFFF)V")),
     draw_fill          (JFuncVoid::Create (*this, "DrawFill",           "()V"))
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
@@ -99,13 +98,6 @@ void JavaDraw::DrawArc(jobject path, float left, float top, float right, float b
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  (*draw_arc)(getEnv(), path, left, top, right, bottom, start, sweep);
-}
-
-void JavaDraw::DrawBezier(jobject path, float x1, float y1, float x2, float y2, float x3, float y3)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-
- (*draw_bezier)(getEnv(), path, x1, y1, x2, y2, x3, y3);
 }
 
 void JavaDraw::SetBorderSize(float size)
@@ -396,13 +388,6 @@ void Draw::DrawArc(jobject path, float left, float top, float right, float botto
  javaDraw->DrawArc(path, left, top, right, bottom, start, sweep);
 }
 
-void Draw::DrawBezier(jobject path, float x1, float y1, float x2, float y2, float x3, float y3)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-
- javaDraw->DrawBezier(path, x1, y1, x2, y2, x3, y3);
-}
-
 PathPtr Draw::NewPath(void)
 {
  return PathPtr(new Path(*this));
@@ -439,20 +424,20 @@ void Path::Move(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- (*path.draw_move)(parent.getEnv(), half_width  * (x + 1.0f), half_height * (y + 1.0f));
+ currentX = half_width  * (x + 1.0f);
+ currentY = half_height * (y + 1.0f);
 
- currentX = x;
- currentY = y;
+ (*path.draw_move)(parent.getEnv(), currentX, currentY);
 }
 
 void Path::Line(float x, float y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- (*path.draw_line)(parent.getEnv(), half_width  * (x + 1.0f), half_height * (y + 1.0f));
+ currentX = half_width  * (x + 1.0f);
+ currentY = half_height * (y + 1.0f);
 
- currentX = x;
- currentY = y;
+ (*path.draw_line)(parent.getEnv(), currentX, currentY);
 }
 
 void Path::Arc(float xc, float yc, float r, float a1, float a2)
@@ -477,15 +462,22 @@ void Path::Bezier(float x, float y, float dx, float dy)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ float nDx = half_width * dx;
+ float nDy = half_height * dy;
+
  if (is_bezier) {
-    parent.DrawBezier(path.getPath(), currentX + bezier_dx, currentY + bezier_dy, x - dx, y - dy, x, y);
+    float nX = half_width * (x + 1.0f);
+    float nY = half_height * (y + 1.0f);
+    (*path.bezier)(parent.getEnv(), currentX + bezier_dx, currentY + bezier_dy, nX - nDx, nY - nDy, nX, nY);
+    currentX = nX;
+    currentY = nY;
  } else {
     Move(x, y);
     is_bezier = true;
  }
 
- bezier_dx = dx;
- bezier_dy = dy;
+ bezier_dx = nDx;
+ bezier_dy = nDy;
 }
 
 void Path::Close(void)
@@ -499,6 +491,7 @@ void Path::Clear(void)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
+ (*path.clear)(parent.getEnv());
  is_bezier = false;
 }
 
@@ -524,9 +517,11 @@ void Path::Fill(void)
 
 Path::MyJavaPath::MyJavaPath(JNIEnv * env):
     path(JClass::Create("android/graphics/Path", nullptr, env)),
-    draw_line   (JFuncVoid::Create  (*path, "lineTo", "(FF)V")),
-    draw_move   (JFuncVoid::Create  (*path, "moveTo", "(FF)V")),
-    close       (JFuncVoid::Create  (*path, "close", "()V"))
+    draw_line   (JFuncVoid::Create  (*path, "lineTo",   "(FF)V")),
+    draw_move   (JFuncVoid::Create  (*path, "moveTo",   "(FF)V")),
+    close       (JFuncVoid::Create  (*path, "close",    "()V")),
+    clear       (JFuncVoid::Create  (*path, "reset",    "()V")),
+    bezier      (JFuncVoid::Create  (*path, "cubicTo",  "(FFFFFF)V"))
 {
 }
 
