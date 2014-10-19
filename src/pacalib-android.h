@@ -81,7 +81,7 @@ namespace PaCaAndroid
             return JavaDrawPtr(new JavaDraw(obj, env));
         }
 
-        float DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect);
+        float DrawText(float x, float y, const char * text, int mode, float offset, float size, float aspect, float rotate);
         void DrawArc(jobject path, float left, float top, float right, float bottom, float start, float sweep);
         void SetBorderSize(float size);
         void SetBorderColour(float r, float g, float b, float a);
@@ -340,7 +340,7 @@ namespace PaCaAndroid
         virtual void Scale(float sw, float sh) override;
         virtual void SetColour(float r, float g, float b, float a) override;
         virtual void SetColourCompose(PaCaLib::ColourCompose mode) override;
-        virtual float DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect = 1.0) override;
+        virtual float DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect, float rotate) override;
         virtual void SetTextOutlineColour(float r, float g, float b, float a = 1.0) override;
         virtual void SetTextOutline(float outline) override;
         virtual void SetLineCap(PaCaLib::LineCap cap) override;
