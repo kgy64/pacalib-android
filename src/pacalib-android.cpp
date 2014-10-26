@@ -72,7 +72,7 @@ JavaDraw::JavaDraw(jobject obj, JNIEnv * env):
     set_colour_compose (JFuncVoid::Create (*this, "SetColorBlendMode",  "(I)V")),
     set_line_cap       (JFuncVoid::Create (*this, "SetLineCap",         "(I)V")),
     set_line_width     (JFuncVoid::Create (*this, "SetLineWidth",       "(F)V")),
-    draw_text          (JFuncFloat::Create(*this, "DrawText",           "(Ljava/lang/String;FFIFFFF)F")),
+    draw_text          (JFuncFloat::Create(*this, "DrawText",           "(Ljava/lang/String;FFIFFFFFF)F")),
     draw_path          (JFuncVoid::Create (*this, "DrawPath",           "(Landroid/graphics/Path;I)V")),
     draw_arc           (JFuncVoid::Create (*this, "DrawArc",            "(Landroid/graphics/Path;FFFFFF)V")),
     draw_fill          (JFuncVoid::Create (*this, "DrawFill",           "()V"))
@@ -85,12 +85,12 @@ JavaDraw::~JavaDraw()
  SYS_DEBUG_MEMBER(DM_PACALIB);
 }
 
-float JavaDraw::DrawText(float x, float y, const char * text, int mode, float offset, float textsize, float aspect, float rotate)
+float JavaDraw::DrawText(float x, float y, const char * text, int mode, float offset, float textsize, float aspect, float rotate, float shear_x, float shear_y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
  JavaString js(text, getEnv());
- return (*draw_text)(getEnv(), js.get(), x, y, mode, offset, textsize, aspect, rotate); // LFFIFFFF
+ return (*draw_text)(getEnv(), js.get(), x, y, mode, offset, textsize, aspect, rotate, shear_x, shear_y); // LFFIFFFFFF
 }
 
 void JavaDraw::DrawArc(jobject path, float left, float top, float right, float bottom, float start, float sweep)
@@ -315,11 +315,11 @@ void Draw::SetColourCompose(PaCaLib::ColourCompose mode)
  javaDraw->SetColourCompose(mode);
 }
 
-float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect, float rotate)
+float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect, float rotate, float shear_x, float shear_y)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "DrawTextInternal(x=" << x << ", y=" << y << ", mode=" << (int)mode << ", text='" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ", rot=" << rotate << ")");
- DEBUG_OUT("DrawTextInternal(x=" << x << ", y=" << y << ", mode=" << (int)mode << ", text='" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ", rot=" << rotate << ")");
+ // DEBUG_OUT("DrawTextInternal(x=" << x << ", y=" << y << ", mode=" << (int)mode << ", text='" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ", rot=" << rotate << ")");
 
  int JTextMode = 0;
 
@@ -335,7 +335,7 @@ float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const cha
     break;
  }
 
- return javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect, rotate * (180.0f / M_PI));
+ return javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect, rotate * (180.0f / M_PI), shear_x, shear_y);
 }
 
 void Draw::SetTextOutlineColour(float r, float g, float b, float a)
