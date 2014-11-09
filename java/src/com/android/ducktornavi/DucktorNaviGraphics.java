@@ -10,7 +10,8 @@
 
 package com.android.ducktornavi;
 
-import android.util.Log;
+import java.lang.Math;
+// import android.util.Log;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Canvas;
@@ -129,17 +130,17 @@ public class DucktorNaviGraphics {
         /*! \param      text        The text to be printed.
          *  \param      x           The horizontal position of the target.<br>
          *                          The position is handled in OpenGL-way: the -1.0 means leftmost, and +1.0 means rightmost.
-         *  \param      y           The vertical position of the target.
+         *  \param      y           The vertical position of the target.<br>
          *                          The position is handled in OpenGL-way: the -1.0 means bottommost, and +1.0 means topmost.
          *  \param      mode        Text justify, it can be:
          *                          - 0:    Left justified
          *                          - 1:    Center justified
          *                          - 2:    Right justified
          *  \param      offset      Vertical offset of the current line.<br>
-         *                          It is used to display multi-line text. Its unit is the text height, negative value moves up.
+         *                          It is used to display multi-line text. Its unit is the text line height, negative value moves up.
          *  \param      textsize    The relative vertical size of the text. Its unit is the vertical size of the target bitmap.
          *  \param      aspect      The target aspect ratio.
-         *  \param      rotate      Rotation of the whole text
+         *  \param      rotate      Rotation of the whole text (in radians).
          *  \param      shear_x     Horizontal shear: positive value means tilt right.
          *  \param      shear_y     Vertical shear: positive value means rise right.
          *  \retval     float       The vertical size of the printed text is returned, in the unit of the target bitmap height. */
@@ -147,16 +148,15 @@ public class DucktorNaviGraphics {
 
             // Log.i(TAG, "DrawText(\"" + text + "\", x=" + x + ", y=" + y + ", mode=" + mode + ", off=" + offset + ", size=" + textsize + ", aspect=" + aspect + ", rot=" + rotate + ", sx=" + shear_x + ", sy=" + shear_y + ")");
 
-            // General size correction factor for glyphs:
-            final float correction = 0.80f; // Heuristic value
+            // General size correction factor for glyphs: (Heuristic value)
+            final float correction = 0.65f;
 
             final float multiplier = aspect * w / h;
             final float hor  = multiplier;
             final float vert = correction;
-            final float bottom_offset = 0.5f * textsize;
 
             x = w * (1.0f + x) / (2.0f * multiplier);
-            y = h * (1.0f - y) / 2.0f;
+            y = h * (1.0f - y) / 2.0f;  // -1.0f => h; +1.0f => 0.0
 
             paint.setTextSize(h * textsize);
 
@@ -168,7 +168,7 @@ public class DucktorNaviGraphics {
             Rect bounds = new Rect();
             paint.getTextBounds(text, 0, text.length(), bounds);
             float width = bounds.right - bounds.left;
-            float height = metrics.bottom - metrics.top;  // negative factor
+            float height = correction * (metrics.bottom - metrics.top);  // negative factor
 
             // Baseline: this is the offset of the bottom part (positive value here), must be moved
             // upwards to see the bottom part.
@@ -186,13 +186,15 @@ public class DucktorNaviGraphics {
                 break;
             }
 
-            y = height * (bottom_offset - offset) - baseline - y;
+            y = baseline - y;
 
-            // Log.i(TAG, "DrawText(): x=" + x + ", y=" + y + "(w=" + w + ", h=" + h + ")");
+            // Log.i(TAG, "DrawText(\"" + text + "\"): x=" + x + ", y=" + y + " (w=" + w + ", h=" + h + ")");
 
             if (rotate != 0.0f) {
-                canvas.rotate(rotate, x, y);
+                canvas.rotate(rotate * (180.0f / (float)Math.PI), x, y - 0.3f * height);
             }
+
+            y -= height * offset;
 
             if (borderSize > 0.0f) {
                 paint.setColor(colour);
@@ -232,7 +234,7 @@ public class DucktorNaviGraphics {
 
         private Canvas canvas;
 
-        private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.LINEAR_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+        private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG | Paint.LINEAR_TEXT_FLAG /* | Paint.SUBPIXEL_TEXT_FLAG*/);
 
         /// The width of the target bitmap
         private float w;

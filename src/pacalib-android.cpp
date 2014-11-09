@@ -335,7 +335,7 @@ float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const cha
     break;
  }
 
- return javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect, rotate * (180.0f / M_PI), shear_x, shear_y);
+ return javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect, rotate, shear_x, shear_y);
 }
 
 void Draw::SetTextOutlineColour(float r, float g, float b, float a)
