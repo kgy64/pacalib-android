@@ -201,7 +201,8 @@ public class DucktorNaviGraphics {
 
             if (shear_x != 0.0f || shear_y != 0.0f) {
                 Matrix m = new Matrix();
-                m.preSkew(shear_x, shear_y, x, y - 0.3f * height);
+                m.preSkew(-shear_x, -shear_y, x, y - 0.3f * height);
+                canvas.concat(m);
             }
 
             y -= height * offset;
