@@ -222,7 +222,7 @@ public class DucktorNaviGraphics {
             canvas.restore();
 
             float result = 2.0f * aspect / h;
- here            if (width != 0.0f) {
+            if (width != 0.0f) {
                 result *= width;
             } else {
                 result *= 0.3 * height; // Size of whitespace characters
