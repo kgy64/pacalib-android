@@ -26,6 +26,7 @@ import android.graphics.Xfermode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.Matrix;
 
 public class DucktorNaviGraphics {
 
@@ -196,6 +197,11 @@ public class DucktorNaviGraphics {
 
             if (rotate != 0.0f) {
                 canvas.rotate(rotate * (180.0f / (float)Math.PI), x, y - 0.3f * height);
+            }
+
+            if (shear_x != 0.0f || shear_y != 0.0f) {
+                Matrix m = new Matrix();
+                m.preSkew(shear_x, shear_y, x, y - 0.3f * height);
             }
 
             y -= height * offset;
