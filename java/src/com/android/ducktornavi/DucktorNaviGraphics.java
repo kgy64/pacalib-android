@@ -139,11 +139,15 @@ public class DucktorNaviGraphics {
          *  \param      offset      Vertical offset of the current line.<br>
          *                          It is used to display multi-line text. Its unit is the text line height, negative value moves up.
          *  \param      textsize    The relative vertical size of the text. Its unit is the vertical size of the target bitmap.
-         *  \param      aspect      The target aspect ratio.
+         *  \param      aspect      The target aspect ratio. It modifies the horizontal size of the text: if it is 1.0
+         *                          (the default value), then one symbol of size 1.0 fills the whole bitmap (but still
+         *                          readable). Wider bitmap needs value > 1 here.
          *  \param      rotate      Rotation of the whole text (in radians).
          *  \param      shear_x     Horizontal shear: positive value means tilt right.
          *  \param      shear_y     Vertical shear: positive value means rise right.
-         *  \retval     float       The vertical size of the printed text is returned, in the unit of the target bitmap height. */
+         *  \retval     float       The horizontal size of the printed text is returned, in the unit of the target bitmap height.
+         *                          This value is used to position within OpenGL object, so half height means 1.0 for compatibility
+         *                          reasons. */
         public float DrawText(String text, float x, float y, int mode, float offset, float textsize, float aspect, float rotate, float shear_x, float shear_y) {
 
             // Log.i(TAG, "DrawText(\"" + text + "\", x=" + x + ", y=" + y + ", mode=" + mode + ", off=" + offset + ", size=" + textsize + ", aspect=" + aspect + ", rot=" + rotate + ", sx=" + shear_x + ", sy=" + shear_y + ")");
@@ -218,7 +222,7 @@ public class DucktorNaviGraphics {
             canvas.restore();
 
             float result = 2.0f * aspect / h;
-            if (width != 0.0f) {
+ here            if (width != 0.0f) {
                 result *= width;
             } else {
                 result *= 0.3 * height; // Size of whitespace characters
