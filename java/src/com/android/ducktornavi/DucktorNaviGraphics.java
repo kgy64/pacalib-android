@@ -10,8 +10,8 @@
 
 package com.android.ducktornavi;
 
+import android.util.Log;
 import java.lang.Math;
-// import android.util.Log;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Canvas;
@@ -193,7 +193,7 @@ public class DucktorNaviGraphics {
 
             y = baseline - y;
 
-            // Log.i(TAG, "DrawText(\"" + text + "\"): x=" + x + ", y=" + y + " (w=" + w + ", h=" + h + ")");
+            // Log.i(TAG, "DrawText(\"" + text + "\"): x=" + x + ", y=" + y + ", r=" + rotate + ", sx=" + shear_x + ", sy=" + shear_y + " (w=" + w + ", h=" + h + ")");
 
             if (rotate != 0.0f) {
                 canvas.rotate(rotate * (180.0f / (float)Math.PI), x, y - 0.3f * height);
