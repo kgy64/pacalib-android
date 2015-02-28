@@ -319,7 +319,6 @@ float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const cha
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "DrawTextInternal(x=" << x << ", y=" << y << ", mode=" << (int)mode << ", text='" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ", rot=" << rotate << ")");
- // DEBUG_OUT("DrawTextInternal(x=" << x << ", y=" << y << ", mode=" << (int)mode << ", text='" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ", rot=" << rotate << ")");
 
  int JTextMode = 0;
 

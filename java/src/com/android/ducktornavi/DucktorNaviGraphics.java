@@ -199,6 +199,8 @@ public class DucktorNaviGraphics {
                 canvas.rotate(rotate * (180.0f / (float)Math.PI), x, y - 0.3f * height);
             }
 
+            shear_y *= hor;
+
             if (shear_x != 0.0f || shear_y != 0.0f) {
                 Matrix m = new Matrix();
                 m.preSkew(-shear_x, -shear_y, x, y - 0.3f * height);
