@@ -315,14 +315,17 @@ void Draw::SetColourCompose(PaCaLib::ColourCompose mode)
  javaDraw->SetColourCompose(mode);
 }
 
-float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const char * text, float size, float offset, float aspect, float rotate, float shear_x, float shear_y)
+float Draw::DrawTextInternal(const TextParams & params, const Distortion * distortion)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
- SYS_DEBUG(DL_INFO1, "DrawTextInternal(x=" << x << ", y=" << y << ", mode=" << (int)mode << ", text='" << text << "', size=" << size << ", offset=" << offset << ", aspect=" << aspect << ", rot=" << rotate << ")");
+ SYS_DEBUG(DL_INFO1, "DrawTextInternal() params=" << params);
+ if (distortion) {
+    SYS_DEBUG(DL_INFO1, " - distortion=" << *distortion);
+ }
 
  int JTextMode = 0;
 
- switch (mode) {
+ switch (params.mode) {
     case PaCaLib::LEFT:
         JTextMode = 0;
     break;
@@ -334,10 +337,10 @@ float Draw::DrawTextInternal(float x, float y, PaCaLib::TextMode mode, const cha
     break;
  }
 
- return javaDraw->DrawText(x, y, text, JTextMode, offset, size, aspect, rotate, shear_x, shear_y);
+ return javaDraw->DrawText(params.x, params.y, params.text, JTextMode, params.offset, params.size, params.aspect, params.rotation, params.shear_x, params.shear_y);
 }
 
-void Draw::SetTextOutlineColour(float r, float g, float b, float a)
+void Draw::SetOutlineColour(float r, float g, float b, float a)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutlineColour(" << r << ", " << g << ", " << b << ", " << a << ")");
@@ -345,7 +348,7 @@ void Draw::SetTextOutlineColour(float r, float g, float b, float a)
  javaDraw->SetBorderColour(r, g, b, a);
 }
 
-void Draw::SetTextOutline(float outline)
+void Draw::SetOutlineWidth(float outline)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
  SYS_DEBUG(DL_INFO1, "SetTextOutline(" << outline << ")");
@@ -399,7 +402,7 @@ PathPtr Draw::NewPath(void)
  *                                                                                       *
 \* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Path::Path(Draw & parent):
+Path::Path(PaCaAndroid::Draw & parent):
     parent(parent),
     path(parent.getEnv()),
     width(parent.GetWidth()),
@@ -495,18 +498,24 @@ void Path::Clear(void)
  is_bezier = false;
 }
 
-void Path::Stroke(void)
+void Path::Draw(PaCaLib::Path::DrawMode mode)
 {
  SYS_DEBUG_MEMBER(DM_PACALIB);
 
- parent.DrawPath(path.getPath(), 0);
-}
-
-void Path::Fill(void)
-{
- SYS_DEBUG_MEMBER(DM_PACALIB);
-
- parent.DrawPath(path.getPath(), 1);
+ switch (mode) {
+    case PaCaLib::Path::DRAW_STROKE:
+        parent.DrawPath(path.getPath(), 0);
+    break;
+    case PaCaLib::Path::DRAW_FILL:
+        parent.DrawPath(path.getPath(), 1);
+    break;
+    case PaCaLib::Path::DRAW_STROKE_AND_FILL:
+        parent.DrawPath(path.getPath(), 1);
+        parent.DrawPath(path.getPath(), 0);
+    break;
+    default:
+    break;
+ }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\
