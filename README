@@ -1,0 +1,12 @@
+PaCaLib-Android: my 2D rendering library implementation for Android
+-------------------------------------------------------------------
+
+This is an object-oriented interface to draw graphics primitives including lines, circles, text, etc...
+
+Based on the following external libraries:
+- makesys   https://github.com/kgy64/makesys.git        My build system
+- baselib   https://github.com/kgy64/baselib.git        My basic library
+
+It uses the built-in Java classes as graphics interface.
+Also uses Java-caller classes from Baselib.
+
